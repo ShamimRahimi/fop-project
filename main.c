@@ -14,12 +14,11 @@ void createfile(){
     char* slash_filename = strrchr(command_backup2 , '/');
     char* filename=slash_filename+1;
    
-    printf("%s\n" , filename);
     if (access(filename, F_OK) == 0) {
         printf("%s already exists" , filename);
     } else {
         FILE *fp;
-        fp=fopen("filename", "w");
+        fp=fopen(filename, "w");
         fclose(fp);
     }
   
