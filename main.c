@@ -67,28 +67,67 @@ void createfile(char* commandkh){
   }
 
 void cat(char* commandkh){
-    char command_backup2[1000];
-    strcpy(command_backup2 , commandkh);
-    char* val = strchr(command_backup2 , ' ');
-    char* slash_filename = strrchr(command_backup2 , ' ');
+    char* command_backup = (char*) calloc(2000 , sizeof(char));
+    strcpy(command_backup , commandkh);
+    char* slash_filename = strrchr(command_backup , '/');
     char* filename=slash_filename+1;
+
+    char* chertt = strtok(commandkh, " ");
+    char* word_numm[100];
     
-     if(val[0]==' ' && val[1]=='-' && val[2]=='-' && val[3]=='f' && val[4]=='i' && val[5]=='l' && val[6]=='e'){
+
+    int j = 0;
+    while (chertt != NULL)
+        {
+            word_numm[j] = chertt;
+            chertt = strtok(NULL," ");
+            j++;
+        }
+    char* che = strtok(word_numm[2] , " / ");
+    char* address_num[100];
+  
+   
+    int cnt = 0;
+    int k = 0;
+    while (che != NULL){
+            address_num[k] = che;
+            che = strtok(NULL," / ");
+            k++;
+            cnt++;
+        }
+
         FILE* ptr;
-        char ch;
+        char ch[1000];
+    char s[100];
+    if(!strcmp(word_numm[1] , "--file")){
+        for(int ii = 1 ; ii<cnt-1 ; ii++){
+            chdir(address_num[ii]);
+        }
+        
         ptr = fopen(filename, "r");
  
-            if (NULL == ptr) {
-            printf("file can't be opened \n");
-            }
- 
-  
-            while (ch != EOF){
-                ch = fgetc(ptr);
-                printf("%c", ch);
+            if (NULL != ptr) {
+                while(fgets(ch , 1000 , ptr)){
+                    printf("%s" , ch);
+                }            
             }
 
-            fclose(ptr);
+            else{
+                printf("file can't be opened \n");
+            }
+            
+
+        fclose(ptr);
+         for(int jj = 0 ; jj<cnt-2 ; jj++){
+            chdir("..");
+         }
+         if(strcmp(s, "/Users/shamim/root")){
+            chdir("root");
+         }
+        //  getcwd(s, sizeof(s));
+        //  printf("Current working dir: %s\n", s);
+        
+            
     }
     else{
         printf("Invalid Command\n");
