@@ -45,7 +45,7 @@ void createfile(char* commandkh){
             if(res==-1){
                 mkdir(address_num[ii],0777);
                 chdir(address_num[ii]);
-            }      
+            }
         }
         if(access(filename, F_OK) == 0) {
             printf("%s already exists" , filename);
@@ -109,7 +109,7 @@ void cat(char* commandkh){
             if (NULL != ptr) {
                 while(fgets(ch , 1000 , ptr)){
                     printf("%s" , ch);
-                }            
+                }
             }
 
             else{
@@ -124,16 +124,93 @@ void cat(char* commandkh){
          if(strcmp(s, "/Users/shamim/root")){
             chdir("root");
          }
-        //  getcwd(s, sizeof(s));
-        //  printf("Current working dir: %s\n", s);
-        
-            
+    
     }
     else{
         printf("Invalid Command\n");
     }
     
 }
+
+void insertstr(char* commandkh){
+    
+    char* command_backup = (char*) calloc(2000 , sizeof(char));
+    strcpy(command_backup , commandkh);
+    
+
+    char* chertt = strtok(commandkh, " ");
+    char* word_numm[100];
+    int j = 0;
+
+    while (chertt != NULL)
+        {
+            word_numm[j] = chertt;
+            chertt = strtok(NULL," ");
+            j++;
+        }
+    
+     char* slash_filename = strrchr(word_numm[2] , '/');
+     char* filename=slash_filename+1;
+
+    char* string = word_numm[4];
+    char* pos= strrchr(word_numm[6] , ':');
+    char* poss=pos+1;
+
+
+    long int lineno = strtol(word_numm[6] , &word_numm[6] , 10 );
+    long int start_pos = strtol(poss , &poss , 10 );
+    char content[1000000];
+    
+    if((!strcmp(word_numm[1] , "--file")) || (!strcmp(word_numm[3] , "--str")) || (!strcmp(word_numm[3] , "-pos"))){
+        FILE* fptr;
+        char ch;
+        int k=0;
+        int cnt_line = 1;
+        int cnt_c = 0;
+        fptr = fopen(filename, "r");
+        
+        if(fptr == NULL){
+            printf("file doesn't exist \n");
+        }
+            
+        
+        while((ch = fgetc(fptr))!= EOF) {
+            content[k]=ch;
+            cnt_c++;
+            if(ch == '\n'){
+                cnt_line++;
+                cnt_c=0;
+            }
+            k++;
+            if((cnt_line == lineno) && (cnt_c == start_pos)){
+                break;
+            }
+        }
+   
+        char rest[100000];
+        int kk = 0;
+        
+        while (ch != EOF)
+        {
+            rest[kk] = ch;
+            kk++;
+            ch = fgetc(fptr);
+        }
+        
+        fclose(fptr);
+        fptr = fopen(filename, "w");
+        fprintf(fptr , "%s%s%s", content , string , rest);
+        fclose(fptr);
+        cnt_line = 0;
+        ch = 0;
+        
+    }
+    
+     else{
+         printf("Invalid Command\n");
+     }
+}
+
 
 int main(){
 
@@ -161,7 +238,10 @@ int main(){
         if( !strcmp (strtok(word_num[0], " ") , "cat")){
             cat(command_backup);
         }
+
+        if( !strcmp (strtok(word_num[0], " ") , "insertstr")){
+            insertstr(command_backup);
+        }
     }
     return 0;
 }
-
