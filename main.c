@@ -6,6 +6,7 @@
 #include <sys/types.h>
 
 char* word_num[1000];
+char copied[1000];
 int cnt = 0;
 long int lineno;
 long int start_pos;
@@ -274,22 +275,28 @@ void removestr(char* command){
             }
 
             int kk=0;
-            while((ch = fgetc(fptr))!= EOF) {
+            while(ch != EOF) {
                 p2[kk]=ch;
+                ch = fgetc(fptr);
                 kk++;
             }
             fclose(fptr);
 
             char* p22;
+            int index = (k-size_removed);
+
             fopen(filename , "w");
             if((!strcmp(word_num[7], "-f"))){
                
                 p22 = p2+size_removed;
                 fprintf(fptr , "%s%s" , p1 , p22);
             }
-
             else if((!strcmp(word_num[7], "-b"))){
-                p1[k-(size_removed)] = '\0';
+                
+                    p1[index] = '\0';
+                    index++;
+                
+                //printf("%s\n" , p1);
                 fprintf(fptr , "%s%s" , p1 , p2);
             }
              fclose(fptr);
@@ -353,6 +360,7 @@ if((!strcmp(word_num[1] , "--file")) && (!strcmp(word_num[3] , "-pos")) && (!str
             counter++;
         }
         copytoclipboard(tocopy);
+        strcpy(copied , tocopy);
     }
 
     if(!strcmp(word_num[7] , "-b")){
@@ -365,15 +373,32 @@ if((!strcmp(word_num[1] , "--file")) && (!strcmp(word_num[3] , "-pos")) && (!str
             counter++;
         }
         copytoclipboard(tocopy);
+        strcpy(copied , tocopy);
     }
     fclose(fptr);
     return_back();
 }
 
 else{
-     printf("Invalid Command");
+    printf("Invalid Command");
 }
 
+}
+
+void pastestr(char* command){
+
+    space_seperate(&command);
+    find_pos(word_num[4]);
+
+    if((!strcmp(word_num[1] , "--file")) && (!strcmp(word_num[3] , "-pos"))){
+        char* cmd2 = (char*) calloc(2000 , sizeof(char));
+        sprintf(cmd2 , "insertstr --file %s --str %s -pos %ld:%ld" , word_num[2] , copied , lineno , start_pos);
+        printf("%s" , cmd2);
+        insertstr(cmd2);
+    }
+    else{
+        printf("Invalid Command");
+    }
 }
 
 int main(){
@@ -382,7 +407,9 @@ int main(){
         char* command = (char*) calloc(2000 , sizeof(char));
         scanf("%[^\n]%*c" , command );
         char* command_backup = (char*) calloc(2000 , sizeof(char));
+        char* command_backup2 = (char*) calloc(2000 , sizeof(char));
         strcpy(command_backup , command);
+         strcpy(command_backup2 , command);
         char* chert = strtok(command, " ");
         char* word_num[100];
         
@@ -413,6 +440,15 @@ int main(){
 
         if( !strcmp (strtok(word_num[0], " ") , "copystr")){
             copystr(command_backup);
+        }
+
+        if( !strcmp (strtok(word_num[0], " ") , "cutstr")){
+            copystr(command_backup);
+            removestr(command_backup2);
+        }
+
+        if( !strcmp (strtok(word_num[0], " ") , "pastestr")){
+            pastestr(command_backup);
         }
     }
     return 0;
