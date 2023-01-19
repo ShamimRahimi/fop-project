@@ -7,15 +7,15 @@
 
 char* word_num[1000];
 int cnt = 0;
+long int lineno;
+long int start_pos;
 
-void go_to_folder(char* address[]){
+void go_to_folder(){
 
     cnt=0;
     char* che = strtok(word_num[2] , " / ");
     char* address_num[100];
   
-   
-    //int cnt = 0;
     int k = 0;
     while (che != NULL){
             address_num[k] = che;
@@ -42,6 +42,25 @@ void return_back(){
             chdir("root");
          }
 
+}
+
+void find_pos(char* wordnum){
+
+    lineno = 0;
+    start_pos = 0;
+    char* pos= strrchr(wordnum , ':');
+    char* poss=pos+1;
+    lineno = strtol(wordnum , &wordnum , 10 );
+    start_pos = strtol(poss , &poss , 10 );
+
+}
+
+int copytoclipboard(const char *str) {
+
+    char cmd[100];
+    sprintf(cmd , "echo '%s' | pbcopy" , str);
+
+    return system(cmd);
 }
 
 void space_seperate(char* command[]){
@@ -114,11 +133,10 @@ void cat(char* command){
     char* slash_filename = strrchr(word_num[2] , '/');
     char* filename=slash_filename+1;
 
-    go_to_folder(&word_num[2]);
+    go_to_folder();
     
         FILE* ptr;
         char ch[1000]={};
-    //char s[100];
     if(!strcmp(word_num[1] , "--file")){
         
         ptr = fopen(filename, "r");
@@ -149,20 +167,17 @@ void insertstr(char* command){
    
     space_seperate(&command);
 
-     char* slash_filename = strrchr(word_num[2] , '/');
-     char* filename=slash_filename+1;
+    char* slash_filename = strrchr(word_num[2] , '/');
+    char* filename=slash_filename+1;
 
     char* string = word_num[4];
-    char* pos= strrchr(word_num[6] , ':');
-    char* poss=pos+1;
+   
+    find_pos(word_num[6]);
 
-
-    long int lineno = strtol(word_num[6] , &word_num[6] , 10 );
-    long int start_pos = strtol(poss , &poss , 10 );
     char content[1000000]={};
     char rest[100000]={};
 
-    go_to_folder(&word_num[2]);
+    go_to_folder();
     
     if((!strcmp(word_num[1] , "--file")) && (!strcmp(word_num[3] , "--str")) && (!strcmp(word_num[5] , "-pos"))){
         FILE* fptr;
@@ -208,7 +223,7 @@ void insertstr(char* command){
 
         return_back();
 
-    }  
+    }
      else{
          printf("Invalid Command\n");
      }
@@ -222,10 +237,7 @@ void removestr(char* command){
     char* slash_filename = strrchr(word_num[2] , '/');
     char* filename=slash_filename+1;
 
-    char* pos= strrchr(word_num[4] , ':');
-    char* poss=pos+1;
-    long int lineno = strtol(word_num[4] , &word_num[4] , 10 );
-    long int start_pos = strtol(poss , &poss , 10 );
+    find_pos(word_num[4]);
 
     long int size_removed = strtol(word_num[6] , &word_num[6] , 10 );
 
@@ -233,7 +245,7 @@ void removestr(char* command){
     char to_be_deleted[100]={};
     char p2[1000000]={};
 
-    go_to_folder(&word_num[2]);
+    go_to_folder();
 
     if((!strcmp(word_num[1] , "--file")) && (!strcmp(word_num[3] , "-pos")) && (!strcmp(word_num[5] , "-size"))){
         FILE* fptr;
@@ -249,6 +261,9 @@ void removestr(char* command){
             
         
             while((ch = fgetc(fptr))!= EOF) {
+                if((cnt_line == lineno) && (cnt_c == start_pos)){
+                    break;
+                }
                 p1[k]=ch;
                 cnt_c++;
                 if(ch == '\n'){
@@ -256,9 +271,6 @@ void removestr(char* command){
                     cnt_c=0;
                 }
                 k++;
-                if((cnt_line == lineno) && (cnt_c == start_pos)){
-                    break;
-                }
             }
 
             int kk=0;
@@ -288,6 +300,80 @@ void removestr(char* command){
     else{
     printf("Invalid Command");
     }
+}
+
+void copystr(char* command){
+
+space_seperate(&command);
+
+char* slash_filename = strrchr(word_num[2] , '/');
+char* filename=slash_filename+1;
+
+find_pos(word_num[4]);
+
+long int size_copied = strtol(word_num[6] , &word_num[6] , 10 ) + 1;
+
+char p1[1000];
+
+if((!strcmp(word_num[1] , "--file")) && (!strcmp(word_num[3] , "-pos")) && (!strcmp(word_num[5] , "-size"))){
+    go_to_folder();
+    FILE* fptr;
+    char ch;
+    int k=0;
+    int cnt_line = 1;
+    int cnt_c = 0;
+    fptr = fopen(filename, "r");
+        
+    if(fptr == NULL){
+        printf("file doesn't exist \n");
+    }
+            
+        
+    while((ch = fgetc(fptr))!= EOF) {
+        if((cnt_line == lineno) && (cnt_c == start_pos)){
+            break;
+        }
+        p1[k]=ch;
+        cnt_c++;
+        k++;
+        if(ch == '\n'){
+            cnt_line++;
+            cnt_c=0;
+        }
+    }
+
+
+    if(!strcmp(word_num[7] , "-f")){
+        int counter = 0 , kk = 0;
+        char tocopy[size_copied];
+        while(counter != (size_copied-1)){
+            tocopy[kk]=ch;
+            ch=fgetc(fptr);
+            kk++;
+            counter++;
+        }
+        copytoclipboard(tocopy);
+    }
+
+    if(!strcmp(word_num[7] , "-b")){
+        int counter = 0 , kk = 0;
+        char tocopy[size_copied];
+        while(counter != size_copied){
+            tocopy[kk]=p1[k-size_copied+1];
+            k++;
+            kk++;
+            counter++;
+        }
+        copytoclipboard(tocopy);
+    }
+    fclose(fptr);
+    return_back();
+}
+
+else{
+     printf("Invalid Command");
+}
+
 }
 
 int main(){
@@ -323,6 +409,10 @@ int main(){
 
         if( !strcmp (strtok(word_num[0], " ") , "removestr")){
             removestr(command_backup);
+        }
+
+        if( !strcmp (strtok(word_num[0], " ") , "copystr")){
+            copystr(command_backup);
         }
     }
     return 0;
