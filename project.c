@@ -13,8 +13,6 @@ long int start_pos;
 int naro=0;
 int i=0;
 int tedad=0;
-// char content[1000000]={};
-// char rest[100000]={};
 
 
 void space_seperate(char**);
@@ -33,51 +31,55 @@ void take_parts(char* , char*);
 void write_to_file(char* , char* , char* , char*);
 
 
-int check_dir(char* path){
+// int check_dir(char* path){
 
-    char* che = strtok(word_num[2] , "/");
-    char* address_num[100];
+//     char* che = strtok(word_num[2] , "/");
+//     char* address_num[100];
    
-    int cnt = 0;
-    int k = 0;
-    int res = 0;
+//     int cnt = 0;
+//     int k = 0;
+//     int res = 0;
 
-    while (che != NULL){
-            address_num[k] = che;
-            //printf("%s\n" , address_num[k]);
-            che = strtok(NULL,"/");
-            k++;
-            cnt++;
-        }
-    chdir("..");
+//     while (che != NULL){
+//             address_num[k] = che;
+//             che = strtok(NULL,"/");
+//             k++;
+//             cnt++;
+//         }
+//     chdir("..");
     
-    // char s[10000];
-    // getcwd(s , sizeof(s));
-    // printf("%s\n" , s);
+//     // char s[10000];
+//     // getcwd(s , sizeof(s));
+//     // printf("%s\n" , s);
 
-     for(int ii = 0 ; ii<cnt-1 ; ii++){
-            res = chdir(address_num[ii]);
-            if(res==-1){
-                printf("There is no folder named %s\n" , address_num[ii]);
-            }
-        }
+//      for(int ii = 0 ; ii<cnt-1 ; ii++){
+//             res = chdir(address_num[ii]);
+//             if(res==-1){
+//                 printf("There is no folder named khhhhh %s\n" , address_num[ii]);
+//                 break;
+//             }
+//         }
 
-    return res;
-}
+//     return res;
+// }
   
 
 int main(){
 
+   // get_command();
+   // int invalid = 0;
+
     while(1){
+
         char* command = (char*) calloc(2000 , sizeof(char));
         scanf("%[^\n]%*c" , command );
-    
+
         char* command_backup = (char*) calloc(2000 , sizeof(char));
         char* command_backup2 = (char*) calloc(2000 , sizeof(char));
         strcpy(command_backup , command);
         strcpy(command_backup2 , command);
         char* chert = strtok(command, " ");
-
+       // printf("%s" , command);
         
         if( !strcmp ( command , "createfile")){
             tedad=10;
@@ -132,43 +134,71 @@ void with_space(char* command){
     strcpy(command_backup , command);
 
     char* sticked = (char*) calloc(100000 , sizeof(char));
-   
+    
     if(command[tedad+8] == '\"'){
+        char* slash_filename = strrchr( command , '/');
+        char* filename=slash_filename+1;
 
-    char* slash_filename = strrchr( command , '/');
-    char* filename=slash_filename+1;
+        char* aha = strtok(command, "/");
 
-    char* aha = strtok(command, "/");
+        char* abc[10000];
 
-    char* abc[10000];
-    char akhari[1000];
-    i = 0;
+        i = 0;
 
-    while (aha != NULL)
-    {
-        abc[i] = aha;
-        aha = strtok(NULL,"/");
-        i++;
+        while (aha != NULL)
+        {
+            abc[i] = aha;
+            aha = strtok(NULL,"/");
+            i++;
+        }
+
+        char* akhari = abc[i-1];
+    
+        int length_akhari=strlen(akhari);
+
+        if(!strcmp(abc[0] , "insertstr --file \"")){
+            char* str= "--str"; 
+            char* ptr = strstr(akhari , str);
+            int pos = ptr - akhari;
+            for(int n=pos-1 ; n<length_akhari ; n++){
+                akhari[n]='\0';
+            }
+        }
+
+        akhari[strlen(akhari)-1]='\0';
+        abc[i-1] = akhari;
+
+        for(int k=1 ; k<i ; k++){
+            sprintf(sticked , "/%s" , abc[k]);
+            strcat(sticked2 , sticked);
+        }
+
+        space_seperate(&command_backup);
+        
+        strcpy(word_num[2] , sticked2);
+        int injast = 0;
+        if(!strcmp(abc[0] , "insertstr --file \"")){
+            for(int l=3 ; l<i ; l++){
+                if(!strcmp(word_num[l] , "--str")){
+                    injast = l;
+                    break;
+                }
+            }
+            int jj = 3;
+            for(int l=injast ; l<i ; l++){
+                word_num[jj] = word_num[l];
+                jj++;
+            }
+        }
     }
 
-    strcpy(akhari , abc[i-1]);
-    akhari[strlen(abc[i-1])-1]='\0';
-    strcpy(abc[i-1] , akhari);
-
-    for(int k=1 ; k<i ; k++){
-        sprintf(sticked , "/%s" , abc[k]);
-        strcat(sticked2 , sticked);
-    }
-    space_seperate(&command_backup);
-    strcpy(word_num[2] , sticked2);
-
-    //ye kara
-    }
     else{
        space_seperate(&command_backup);
         return;
     }
+
  }
+
 
 void space_seperate(char* command[]){
 
@@ -189,6 +219,7 @@ void space_seperate(char* command[]){
 int go_to_folder(){
     int res=0;
     cnt=0;
+ 
     char* che = strtok(word_num[2] , "/");
     char* address_num[100];
   
@@ -202,9 +233,11 @@ int go_to_folder(){
 
         for(int ii = 1 ; ii<cnt-1 ; ii++){
             res = chdir(address_num[ii]);
+           // printf("vaa %d\n" , res);
             if(res == -1){
                 printf("There is no folder named %s\n" , address_num[ii]);
-                return res;
+                 return res;
+                 break;
             }
         }
         return res;
@@ -249,7 +282,7 @@ void createfile(char* command){
     with_space(command);
 
 
-    if(i<4){
+    if(i<3){
         printf("Invalid command\n");
         return;
     }
@@ -306,8 +339,6 @@ void createfile(char* command){
     
     with_space(command);
 
-    printf("%d" , i);
-
     if(i<3){
         printf("Invalid command\n");
         return;
@@ -316,7 +347,6 @@ void createfile(char* command){
     char* slash_filename = strrchr(word_num[2] , '/');
     char* filename=slash_filename+1;
    
-    
     int res=go_to_folder();
     if(res == -1){
         return;
@@ -349,7 +379,7 @@ void createfile(char* command){
 
 void insertstr(char* command){
  
-    space_seperate(&command);
+    with_space(command);
 
     char* slash_filename = strrchr(word_num[2] , '/');
     char* filename=slash_filename+1;
@@ -384,11 +414,10 @@ void insertstr(char* command){
 
     find_pos(word_num[6]);
 
-    int res=check_dir(word_num[2]);
+    int res=go_to_folder();
     if(res == -1){
         return;
     }
-    go_to_folder();
     
     if((!strcmp(word_num[1] , "--file")) && (!strcmp(word_num[3] , "--str")) && (!strcmp(word_num[5] , "-pos"))){
 
@@ -423,7 +452,7 @@ void removestr(char* command){
 
     if((!strcmp(word_num[1] , "--file")) && (!strcmp(word_num[3] , "-pos")) && (!strcmp(word_num[5] , "-size"))){
         FILE* fptr;
-        char ch;
+        int ch = 0;
         int k=0;
         int cnt_line = 1;
         int cnt_c = 0;
@@ -434,43 +463,53 @@ void removestr(char* command){
         }
             
         
-            while((ch = fgetc(fptr))!= EOF) {
-                if((cnt_line == lineno) && (cnt_c == start_pos)){
+            while(ch != EOF) {
+                if(cnt_line == lineno){
+                    while(ch != EOF ){
+                        if(cnt_c == start_pos){
+                            break;
+                        }
+                        ch = fgetc(fptr);
+                        printf("%c " , ch);
+                        p1[k]=ch;
+                        cnt_c++;
+                        k++;
+                    }
+                }
+                else{
+                    ch = fgetc(fptr);
+                    p1[k]=ch;
+                    if(ch == '\n'){
+                        cnt_line++;
+                    }
+                k++;
+                }
+                if(cnt_c == start_pos && cnt_line == lineno){
                     break;
                 }
-                p1[k]=ch;
-                cnt_c++;
-                if(ch == '\n'){
-                    cnt_line++;
-                    cnt_c=0;
-                }
-                k++;
             }
 
             int kk=0;
-            while(ch != EOF) {
+            while((ch = fgetc(fptr)) != EOF) {
                 p2[kk]=ch;
-                ch = fgetc(fptr);
                 kk++;
             }
             fclose(fptr);
 
             char* p22;
-            int index = (k-size_removed);
+            int index = 0;
+            index = (k-size_removed);
 
             fopen(filename , "w");
             if((!strcmp(word_num[7], "-f"))){
-               
                 p22 = p2+size_removed;
                 fprintf(fptr , "%s%s" , p1 , p22);
             }
             else if((!strcmp(word_num[7], "-b"))){
-                
-                    p1[index] = '\0';
-                    index++;
-                
-                //printf("%s\n" , p1);
-                fprintf(fptr , "%s%s" , p1 , p2);
+
+                fprintf(fptr , "%s" , p1);
+                fseek(fptr , index , SEEK_SET);
+                fprintf(fptr , "%s" , p2);
             }
              fclose(fptr);
 
@@ -494,7 +533,7 @@ void copystr(char* command){
 
     char p1[1000];
 
-    int res=check_dir(word_num[2]);
+    int res=go_to_folder();
     if(res == -1){
         naro=1;
         return;
@@ -624,7 +663,6 @@ void take_parts(char* filename , char* string_to_be_added){
 
         while(ch != EOF){
             if(cnt_c == start_pos){
-                cnt_c = 0;
                 break;
             }
             ch = fgetc(fptr);
@@ -643,7 +681,6 @@ void take_parts(char* filename , char* string_to_be_added){
         }
 
         fclose(fptr);
-        printf("%s\n%s\n%s" , content , string_to_be_added , rest);
         write_to_file(filename , content , string_to_be_added , rest);
   
         cnt_line = 0;
