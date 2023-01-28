@@ -19,6 +19,7 @@ int tedad=0;
 int are_for_paste=0;
 int are_for_find=0;
 char* filename_for_find;
+char data[MAX_LINES][MAX_LEN]={};
 
 
 void space_seperate(char**);
@@ -39,6 +40,8 @@ void findstr(char*);
 void str_with_space(char*);
 void filename_with_space(char*);
 void grep(char*);
+void compare(char*);
+void read_line_by_line(char*);
 
 
 int main(){
@@ -105,6 +108,11 @@ int main(){
         else if(!strcmp(command , "grep")){
             tedad=4;
             grep(command_backup);
+        }
+
+        else if(!strcmp(command , "compare")){
+            tedad=7;
+            compare(command_backup);
         }
 
 
@@ -884,9 +892,6 @@ void findstr(char* command){
         else{
             printf("file can't be opened\n");
         }
-        // if(command[11]== '*'){
-        //     printf("NO");
-        // }
         char* ptr = strstr(whole , string_to_be_searched);
         int first_pos = ptr - whole;
         if(first_pos < 0){
@@ -924,8 +929,6 @@ void grep(char* command){
     char* filename[10000];
 
     int n = 0;
-
-    FILE* fptr;
     int cnt_line = 0;
 
     if(!strcmp(word_num[1] , "--str")){
@@ -941,32 +944,31 @@ void grep(char* command){
                 return;
             }
 
-            fptr = fopen(filename[n] , "r");
-
-            if(fptr == NULL){
-                printf("file doesn't exist \n");
+            read_line_by_line(filename[n]);
+            int ccnntt=0;
+            for(int j=1 ; j<MAX_LINES ; j++){
+            if(!strcmp(data[j],"\0")){
+                break;
             }
-
-            else{
-            
-            char data[MAX_LINES][MAX_LEN]={};
-            int line = 1;
-             while (!feof(fptr) && !ferror(fptr)){
-                if (fgets(data[line], MAX_LEN , fptr) != NULL){
-                line++;
-                }
-             }
-            
-            fclose(fptr);
-                for(int l=0 ; l<MAX_LINES ; l++){
-                    char* ptr = strstr(data[l] , pattern);
-                    int pos = ptr - data[l];
-                    if(pos >= 0){
-                        printf("%s:%s\n" , filename[n] , data[l]);
-                        break;
-                    }
+            ccnntt++;
+            }
+            size_t len = strlen(data[ccnntt]);
+            char *str2 = malloc(len + 1 + 1);
+            strcpy(str2, data[ccnntt]);
+            str2[len] = '\n';
+            str2[len + 1] = '\0';
+            strcpy(data[ccnntt] , str2);
+            free(str2);
+           
+            for(int l=0 ; l<MAX_LINES ; l++){
+                char* ptr = strstr(data[l] , pattern);
+                int pos = ptr - data[l];
+                if(pos >= 0){
+                    printf("%s:%s" , filename[n] , data[l]);
+                    break;
                 }
             }
+        
             n++;
             return_back();
         }
@@ -987,32 +989,17 @@ void grep(char* command){
                 return;
             }
 
-            fptr = fopen(filename[n] , "r");
+            read_line_by_line(filename[n]);
 
-            if(fptr == NULL){
-                printf("file %s doesn't exist \n" , filename[n]);
-            }
-            else{
-                char data[MAX_LINES][MAX_LEN]={};
-                int line = 1;
-
-                while (!feof(fptr) && !ferror(fptr)){
-                    if (fgets(data[line], MAX_LEN , fptr) != NULL){
-                        line++;
-                    }
+            for(int l=0 ; l<MAX_LINES ; l++){
+                char* ptr = strstr(data[l] , pattern);
+                int pos = ptr - data[l];
+                if(pos >= 0){
+                    cnt_line++;
+                    break;
                 }
+            }
             
-                fclose(fptr);
-
-                for(int l=0 ; l<MAX_LINES ; l++){
-                    char* ptr = strstr(data[l] , pattern);
-                    int pos = ptr - data[l];
-                    if(pos >= 0){
-                        cnt_line++;
-                        break;
-                    }
-                }
-            }
             n++;
             return_back();
         }
@@ -1035,31 +1022,145 @@ void grep(char* command){
                 return;
             }
 
-            fptr = fopen(filename[n] , "r");
-            if(fptr == NULL){
-                printf("file doesn't exist \n");
-            }
-            else{
-                char data[MAX_LINES][MAX_LEN]={};
-                int line = 1;
-                while (!feof(fptr) && !ferror(fptr)){
-                    if (fgets(data[line], MAX_LEN , fptr) != NULL){
-                        line++;
-                    }
-                }
-                
-                fclose(fptr);
-                for(int l=0 ; l<MAX_LINES ; l++){
-                    char* ptr = strstr(data[l] , pattern);
-                    int pos = ptr - data[l];
-                    if(pos >= 0){
-                        printf("%s\n" , filename[n]);
-                        break;
-                    }
+            read_line_by_line(filename[n]);
+            
+            for(int l=0 ; l<MAX_LINES ; l++){
+                char* ptr = strstr(data[l] , pattern);
+                int pos = ptr - data[l];
+                if(pos >= 0){
+                    printf("%s\n" , filename[n]);
+                    break;
                 }
             }
+        
             n++;
             return_back();
         }
     }
+}
+
+void compare(char* command){
+
+    char data1[MAX_LINES][MAX_LEN]={};
+    char data2[MAX_LINES][MAX_LEN]={};
+
+    space_seperate(&command);
+
+    char* slash_filename1 = strrchr(word_num[1] , '/');
+    char* filename1=slash_filename1+1;
+
+    char* slash_filename2 = strrchr(word_num[2] , '/');
+    char* filename2=slash_filename2+1;
+
+    int one=0 , two=1 , min=0 , max=0;
+        
+    int res=go_to_folder(word_num[1]);
+    if(res == -1){
+        return;
+    }
+
+    read_line_by_line(filename1);
+
+    for(int j=1 ; j<MAX_LINES ; j++){
+        strcpy(data1[j] , data[j]);
+        if(!strcmp(data[j],"\0")){
+            break;
+        }
+        one++;
+    }
+
+    size_t len = 0;
+    len = strlen(data1[one]);
+    char *str2 = malloc(len + 1 + 1);
+    strcpy(str2, data1[one]);
+    str2[len] = '\n';
+    str2[len + 1] = '\0';
+    strcpy(data1[one] , str2);
+    free(str2);
+
+    return_back();
+
+    int res2=go_to_folder(word_num[2]);
+    if(res2 == -1){
+        return;
+    }
+
+    FILE* fptr2;
+    fptr2 = fopen(filename2 , "r");
+
+    if(fptr2 == NULL){
+        printf("file doesn't exist \n");
+    }
+    else{
+        while (!feof(fptr2) && !ferror(fptr2)){
+            while (fgets(data2[two], 10000 , fptr2)){
+                two++;
+            }
+        }
+        
+        fclose(fptr2);
+    }
+    two=two-1;
+    len = strlen(data2[two]);
+    char *str3 = malloc(len + 1 + 1);
+    strcpy(str3 , data2[two]);
+    str3[len] = '\n';
+    str3[len + 1] = '\0';
+    strcpy(data2[two] , str3);
+    free(str3);
+
+    return_back();
+
+    if(one<two){
+        min=one;
+    }
+    else{
+        min=two;
+    }
+
+    for(int j=0 ; j<=min ; j++){
+        if(strcmp(data1[j] , data2[j])){
+            printf("============ #%d ============\n%s%s" , j , data1[j] , data2[j]);
+        }
+    }
+
+    if(two>one){
+        printf(">>>>>>>>>>>> #%d - #%d >>>>>>>>>>>>\n" , min+1 , two);
+        for(int j=min+1 ; j<=two ; j++){
+            printf("%s" , data2[j]);
+        }
+    }
+    else if(one>two){
+        printf("<<<<<<<<<<<< #%d - #%d <<<<<<<<<<<<\n" , min+1 , one);
+        for(int j=min+1 ; j<=one ; j++){
+            printf("%s" , data1[j]);
+        }
+    }
+
+}
+
+void read_line_by_line(char* filename){
+
+
+    for(int j=0 ; j<MAX_LINES ; j++){
+         strcpy(data[j] , "\0");
+    }
+
+    FILE* fptr;
+    int line = 1;
+    fptr = fopen(filename , "r");
+
+    if(fptr == NULL){
+        printf("file doesn't exist \n");
+    }
+    else{
+        while (!feof(fptr) && !ferror(fptr)){
+            while (fgets(data[line], MAX_LEN , fptr)){
+                line++;
+            }
+        }
+        
+        fclose(fptr);
+    }
+
 }
