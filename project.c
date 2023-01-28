@@ -5,6 +5,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#define MAX_LINES 1000
+#define MAX_LEN 1000
+
 char* word_num[1000];
 char copied[1000];
 int cnt = 0;
@@ -14,11 +17,13 @@ int naro=0;
 int i=0;
 int tedad=0;
 int are_for_paste=0;
+int are_for_find=0;
+char* filename_for_find;
 
 
 void space_seperate(char**);
 void with_space(char*);
-int go_to_folder();
+int go_to_folder(char*);
 void return_back();
 void find_pos(char*);
 int copytoclipboard(const char*);
@@ -30,6 +35,10 @@ void copystr(char*);
 void pastestr(char*);
 void take_parts(char* , char*);
 void write_to_file(char* , char* , char* , char*);
+void findstr(char*);
+void str_with_space(char*);
+void filename_with_space(char*);
+void grep(char*);
 
 
 int main(){
@@ -87,6 +96,17 @@ int main(){
             tedad=8;
             pastestr(command_backup);
         }
+
+        else if(!strcmp(command , "find")){
+            tedad=4;
+            findstr(command_backup);
+        }
+
+        else if(!strcmp(command , "grep")){
+            tedad=4;
+            grep(command_backup);
+        }
+
 
         else{
             printf("Invalid command\n");
@@ -194,6 +214,98 @@ void with_space(char* command){
 
  }
 
+void str_with_space(char* command){
+
+     char* sticked = (char*) calloc(100000 , sizeof(char));
+     char* sticked2 = (char*)calloc(100000 , sizeof(char));
+
+    char* command_backup = (char*) calloc(2000 , sizeof(char));
+    strcpy(command_backup , command);
+    char* command_backup2 = (char*) calloc(2000 , sizeof(char));
+    strcpy(command_backup2 , command);
+
+    int injast = 0;
+    if(command[tedad+7] == '\"'){
+        int pos = 0;
+        char* str= "--file"; 
+        char* ptr = strstr(command , str);
+        pos = ptr - command;
+
+        char* aha = strtok(command_backup, " ");
+        char* abc[10000];
+
+        i = 0;
+
+        while (aha != NULL)
+        {
+            abc[i] = aha;
+            aha = strtok(NULL," ");
+            i++;
+        }
+
+        for(int k=0 ; k<i ; k++){
+            if(!strcmp(abc[k] , "--file")){
+                injast = k;
+            }
+        }
+        char* string = (char*) calloc(2000 , sizeof(char));
+        int o=0;
+        for(int k=12 ; k<pos-2 ; k++){
+            string[o]=command[k];
+            o++;
+        }
+
+        space_seperate(&command_backup2);
+        strcpy(word_num[2] , string);
+        int oo = injast;
+        for(int j=3 ; j<i ; j++){
+            word_num[j]=word_num[injast];
+            injast++;
+        }
+    }
+    else{
+        space_seperate(&command_backup2);
+    }
+
+}
+
+void filename_with_space(char* command){
+    int pos = 0;
+    char* str= "--file"; 
+    char* ptr = strstr(command , str);
+    pos = ptr - command;
+    if(command[pos+7]== '\"'){
+    are_for_find=1;
+    char* command_backup = (char*) calloc(2000 , sizeof(char));
+    strcpy(command_backup , command);
+    char* sticked = (char*) calloc(100000 , sizeof(char));
+    char* sticked2 = (char*)calloc(100000 , sizeof(char));
+
+    char* aha = strtok(command, "/");
+
+    char* abc[10000];
+
+    i = 0;
+
+    while (aha != NULL)
+    {
+        abc[i] = aha;
+        aha = strtok(NULL,"/");
+        i++;
+    }
+
+    for(int k=1 ; k<i ; k++){
+            sprintf(sticked , "/%s" , abc[k]);
+            strcat(sticked2 , sticked);
+        }
+        sticked2[strlen(sticked2)-1]='\0';
+        filename_for_find = sticked2;
+    }
+    else{
+        return;
+    }
+}
+
 void space_seperate(char* command[]){
 
     char* command_backup = (char*) calloc(2000 , sizeof(char));
@@ -210,12 +322,12 @@ void space_seperate(char* command[]){
     }
 }
 
-int go_to_folder(){
+int go_to_folder(char* path){
 
     int res=0;
     cnt=0;
  
-    char* che = strtok(word_num[2] , "/");
+    char* che = strtok(path , "/");
     char* address_num[100];
   
     int k = 0;
@@ -228,7 +340,6 @@ int go_to_folder(){
 
         for(int ii = 1 ; ii<cnt-1 ; ii++){
             res = chdir(address_num[ii]);
-           // printf("vaa %d\n" , res);
             if(res == -1){
                 printf("There is no folder named %s\n" , address_num[ii]);
                  return res;
@@ -341,18 +452,18 @@ void cat(char* command){
     char* slash_filename = strrchr(word_num[2] , '/');
     char* filename=slash_filename+1;
    
-    int res=go_to_folder();
+    int res=go_to_folder(word_num[2]);
     if(res == -1){
         return;
     }
     FILE* ptr;
-    char ch[1000]={};
+    char ch[100000]={};
     if(!strcmp(word_num[1] , "--file")){
         
         ptr = fopen(filename, "r");
  
             if (NULL != ptr) {
-                while(fgets(ch , 1000 , ptr)){
+                while(fgets(ch , 100000 , ptr)){
                     printf("%s" , ch);
                 }
                 printf("\n");
@@ -408,7 +519,7 @@ void insertstr(char* command){
 
     find_pos(word_num[6]);
 
-    int res=go_to_folder();
+    int res=go_to_folder(word_num[2]);
     if(res == -1){
         return;
     }
@@ -442,7 +553,7 @@ void removestr(char* command){
     char p2[1000000]={};
 
 
-    int res=go_to_folder();
+    int res=go_to_folder(word_num[2]);
     if(res == -1){
         return;
     }
@@ -531,7 +642,7 @@ void copystr(char* command){
 
     char p1[1000];
 
-    int res=go_to_folder();
+    int res=go_to_folder(word_num[2]);
     if(res == -1){
         naro=1;
         return;
@@ -706,3 +817,249 @@ void write_to_file(char* filename ,char* content , char* string_to_be_added , ch
 
 }
 
+void findstr(char* command){
+
+    str_with_space(command);
+    filename_with_space(command);
+
+    if(are_for_find){
+    word_num[4]=filename_for_find;
+    }
+
+    char* slash_filename = strrchr(word_num[4] , '/');
+    char* filename=slash_filename+1;
+
+    char* string_to_be_searched = word_num[2];
+
+    int res=go_to_folder(word_num[4]);
+    if(res == -1){
+        return;
+    }
+
+    // char* str_backup;
+    // str_backup = word_num[2];
+
+    // printf("%c\n" , str_backup[9]);
+
+    // for(int k=0 ; k<strlen(word_num[2]) ; k++){
+    //     if(str_backup[k] == '*'){
+    //         printf("Hi");
+    //     }
+    //     printf("%c " , str_backup[k]);
+    // }
+//     //strcpy(str_backup , word_num[3]);
+//    // printf("%s\n" , str_backup);
+//     char* str_num[100000];
+//     char* chert = strtok(str_backup, " ");
+    
+//     int str_count = 0;
+
+//     while (chert != NULL){
+//         str_num[str_count] = chert;
+//         chert = strtok(NULL," ");
+//         str_count++;
+//     }
+
+   // printf("strs: %s\n", str_num[0]);
+
+    // char*wordd = strchr (word_num[3] , '*');
+    // printf("%s\n" , wordd);
+
+    if((!strcmp(word_num[1] , "--str")) && (!strcmp(word_num[3] , "--file"))){
+        FILE* fptr;
+        char* whole;
+        int ch = 0;
+        int k=0;
+        fptr = fopen(filename, "r");
+ 
+        if (fptr != NULL) {
+            ch = fgetc(fptr);
+            while(ch != EOF){
+                whole[k]=ch;
+                ch = fgetc(fptr);
+                k++;
+            }
+        }
+       
+        else{
+            printf("file can't be opened\n");
+        }
+        // if(command[11]== '*'){
+        //     printf("NO");
+        // }
+        char* ptr = strstr(whole , string_to_be_searched);
+        int first_pos = ptr - whole;
+        if(first_pos < 0){
+            printf("-1");
+            return;
+        }
+        printf("%d\n" , first_pos);
+        
+    }
+    else{
+        printf("Invalid command");
+    }
+
+    return_back();
+}
+
+void grep(char* command){
+
+    space_seperate(&command);
+
+    char* word_backup;
+    if(!strcmp(word_num[1] , "--str")){
+        word_backup = word_num[2];
+        word_backup[strlen(word_backup)-1]='\0';
+        word_backup=word_backup+1;
+    }
+    else{
+        word_backup = word_num[3];
+        word_backup[strlen(word_backup)-1]='\0';
+        word_backup=word_backup+1;
+    }
+    char pattern[100000]={};
+
+    char* file_path[10000];
+    char* filename[10000];
+
+    int n = 0;
+
+    FILE* fptr;
+    int cnt_line = 0;
+
+    if(!strcmp(word_num[1] , "--str")){
+        for(int k=4 ; k<i ; k++){
+            
+            file_path[n]=word_num[k];
+            char* slash_filename = strrchr(file_path[n] , '/');
+            filename[n]=slash_filename+1;
+            strcpy(pattern , word_backup);
+
+            int res=go_to_folder(file_path[n]);
+            if(res == -1){
+                return;
+            }
+
+            fptr = fopen(filename[n] , "r");
+
+            if(fptr == NULL){
+                printf("file doesn't exist \n");
+            }
+
+            else{
+            
+            char data[MAX_LINES][MAX_LEN]={};
+            int line = 1;
+             while (!feof(fptr) && !ferror(fptr)){
+                if (fgets(data[line], MAX_LEN , fptr) != NULL){
+                line++;
+                }
+             }
+            
+            fclose(fptr);
+                for(int l=0 ; l<MAX_LINES ; l++){
+                    char* ptr = strstr(data[l] , pattern);
+                    int pos = ptr - data[l];
+                    if(pos >= 0){
+                        printf("%s:%s\n" , filename[n] , data[l]);
+                        break;
+                    }
+                }
+            }
+            n++;
+            return_back();
+        }
+    }
+
+    else if(!strcmp(word_num[1] , "-c")){
+
+        for(int k=5 ; k<i ; k++){
+            file_path[n]=word_num[k];
+
+            char* slash_filename = strrchr(file_path[n] , '/');
+            filename[n]=slash_filename+1;
+
+            strcpy(pattern , word_backup);
+
+            int res=go_to_folder(file_path[n]);
+            if(res == -1){
+                return;
+            }
+
+            fptr = fopen(filename[n] , "r");
+
+            if(fptr == NULL){
+                printf("file %s doesn't exist \n" , filename[n]);
+            }
+            else{
+                char data[MAX_LINES][MAX_LEN]={};
+                int line = 1;
+
+                while (!feof(fptr) && !ferror(fptr)){
+                    if (fgets(data[line], MAX_LEN , fptr) != NULL){
+                        line++;
+                    }
+                }
+            
+                fclose(fptr);
+
+                for(int l=0 ; l<MAX_LINES ; l++){
+                    char* ptr = strstr(data[l] , pattern);
+                    int pos = ptr - data[l];
+                    if(pos >= 0){
+                        cnt_line++;
+                        break;
+                    }
+                }
+            }
+            n++;
+            return_back();
+        }
+        printf("%d\n" , cnt_line);
+    }
+    
+    
+
+    else if(!strcmp(word_num[1] , "-l")){
+        for(int k=5 ; k<i ; k++){
+            file_path[n]=word_num[k];
+
+            char* slash_filename = strrchr(file_path[n] , '/');
+            filename[n]=slash_filename+1;
+
+            strcpy(pattern , word_backup);
+
+            int res=go_to_folder(file_path[n]);
+            if(res == -1){
+                return;
+            }
+
+            fptr = fopen(filename[n] , "r");
+            if(fptr == NULL){
+                printf("file doesn't exist \n");
+            }
+            else{
+                char data[MAX_LINES][MAX_LEN]={};
+                int line = 1;
+                while (!feof(fptr) && !ferror(fptr)){
+                    if (fgets(data[line], MAX_LEN , fptr) != NULL){
+                        line++;
+                    }
+                }
+                
+                fclose(fptr);
+                for(int l=0 ; l<MAX_LINES ; l++){
+                    char* ptr = strstr(data[l] , pattern);
+                    int pos = ptr - data[l];
+                    if(pos >= 0){
+                        printf("%s\n" , filename[n]);
+                        break;
+                    }
+                }
+            }
+            n++;
+            return_back();
+        }
+    }
+}
