@@ -42,6 +42,8 @@ void filename_with_space(char*);
 void grep(char*);
 void compare(char*);
 void read_line_by_line(char*);
+void auto_indent(char*);
+//void indent_first_brace();
 
 
 int main(){
@@ -113,6 +115,11 @@ int main(){
         else if(!strcmp(command , "compare")){
             tedad=7;
             compare(command_backup);
+        }
+
+        else if(!strcmp(command , "auto_indent")){
+            tedad=11;
+            auto_indent(command_backup);
         }
 
 
@@ -1141,10 +1148,11 @@ void compare(char* command){
 
 void read_line_by_line(char* filename){
 
-
-    for(int j=0 ; j<MAX_LINES ; j++){
-         strcpy(data[j] , "\0");
-    }
+    for(int l=1 ; l<MAX_LINES ; l++){
+        for(int j=0 ; j<MAX_LEN ; j++){
+            data[l][j]='\0';
+        }
+    }    
 
     FILE* fptr;
     int line = 1;
@@ -1164,3 +1172,279 @@ void read_line_by_line(char* filename){
     }
 
 }
+
+void auto_indent(char* command){
+
+    space_seperate(&command);
+
+    char* slash_filename = strrchr(word_num[1] , '/');
+    char* filename=slash_filename+1;
+
+    char p1[1000][1000];
+    char p2[1000][1000];
+
+    int res = go_to_folder(word_num[4]);
+    if(res == -1){
+        return;
+    }
+
+    char rest[10000];
+    char rest_backup[10000];
+    char rest_backup2[10000];
+    int cnt_open=0 , cnt_close=0;
+
+    read_line_by_line(filename);
+
+    for(int l=1 ; l<MAX_LINES ; l++){
+        for(int j=0 ; j<MAX_LEN ; j++){
+            if(data[l][j]=='{'){
+                cnt_open++;
+            }
+        }
+    }
+
+    for(int l=1 ; l<MAX_LINES ; l++){
+        for(int j=0 ; j<MAX_LEN ; j++){
+            if(data[l][j]=='}'){
+                cnt_close++;
+            }
+        }
+    }
+
+    FILE* fptrr;
+    fptrr = fopen(filename , "w");
+    fprintf(fptrr , "%s" , rest_backup2);
+    fclose(fptrr);
+
+    for(int y=0 ; y<cnt_open ; y++){
+        int saved_line = 0;
+        int saved_ch=0;
+        int naro=0;
+        for(int l=1 ; l<MAX_LINES ; l++){
+            for(int j=0 ; j<MAX_LEN ; j++){
+                if(data[l][j]=='{'){
+                    data[l][j]='\0';
+                    saved_line = l;
+                    saved_ch = j;
+                printf("%d %d\n" , l , j);
+                    for(int ll=1 ; ll<l ; ll++){
+                        for(int jj=0 ; jj<MAX_LEN ; jj++){
+                        p1[ll][jj]=data[ll][jj];
+                        data[ll][jj]='\0';
+                        }
+                    }
+                    for(int jj=0 ; jj<j ; jj++){
+                    p1[l][jj]=data[l][jj];
+                    data[l][jj]='\0';
+                    }
+                    naro=1;
+                }
+                if(naro==1){
+                    break;
+                }
+            }
+            if(naro==1){
+                break;
+            }
+        }  
+        int saved_line2=saved_line;
+        int naroo=0;
+        int ll=0 , jj=0;
+            for(ll=saved_line ; ll>=1 ; ll--){
+                for(jj=MAX_LEN ; jj>=0 ; jj--){
+                    if(p1[ll][jj]==0){
+                    }
+                    else if(p1[ll][jj]==' '){
+                        p1[ll][jj]='\0';
+                    }
+                    else if(p1[ll][jj]== '\n'){
+                        p1[ll][jj]='\0';
+                        saved_line2--;
+                    }
+                    else{
+                        naroo=1;
+                        break;
+                    }
+                }
+                if(naroo==1){
+                    break;
+                }
+
+            }
+
+        int len = 0;
+
+        char str2[100000];
+        for(int k=0 ; k<1000 ; k++){
+            str2[k]=0;
+        }
+
+        printf("%s\n" , str2);
+        for(int k=0 ; k<MAX_LEN ; k++){
+            if(p1[saved_line2][k]!=0){
+            printf("%c" , p1[saved_line2][k]);
+            str2[k] = p1[saved_line2][k];
+            len++;
+            }
+        }
+
+        int n=0;
+        for(int ll=1 ; ll<=saved_line ; ll++){
+            for(int jj=0 ; jj<MAX_LEN ; jj++){
+            rest[n]=p1[ll][jj];
+            n++;
+            }
+        }
+        
+        for(int j=0 ; j<saved_line*MAX_LEN ; j++){
+            rest_backup[j]=rest[j];
+        }
+
+    
+        fptrr = fopen(filename , "a");
+
+        for(int j=0 ; j<saved_line*MAX_LEN ; j++){
+            if(rest_backup[j] != '\0'){
+                fprintf(fptrr , "%c" , rest_backup[j] );
+            }
+        }
+
+        fprintf(fptrr , " {\n");
+
+        if(y==cnt_open-1){
+            for(int o=-1 ; o<y-1 ; o++){
+            fprintf(fptrr , "\t");
+        }
+        }
+        else{
+        for(int o=-1 ; o<y ; o++){
+            fprintf(fptrr , "\t");
+        }
+        }
+
+        for(int ll=0 ; ll<=saved_line ; ll++){
+            for(int jj=0 ; jj<MAX_LEN ; jj++){
+                p1[ll][jj]='\0';
+            }
+        }
+        
+        fclose(fptrr);
+    }
+
+//close
+
+    for(int y=cnt_close-1 ; y>=0 ; y--){
+        int saved_line = 0;
+        int saved_ch=0;
+        int naro=0;
+
+        for(int l=1 ; l<MAX_LINES ; l++){
+            for(int j=0 ; j<MAX_LEN ; j++){
+                if(data[l][j]=='}'){
+                    data[l][j]='\0';
+                    saved_line = l;
+                    saved_ch = j;
+                printf("%d %d\n" , l , j);
+                    for(int ll=1 ; ll<l ; ll++){
+                        for(int jj=0 ; jj<MAX_LEN ; jj++){
+                        p1[ll][jj]=data[ll][jj];
+                        data[ll][jj]='\0';
+                        }
+                    }
+                    for(int jj=0 ; jj<j ; jj++){
+                    p1[l][jj]=data[l][jj];
+                    data[l][jj]='\0';
+                    }
+                    naro=1;
+                }
+                if(naro==1){
+                    break;
+                }
+            }
+            if(naro==1){
+                break;
+            }
+        }  
+        int saved_line2=saved_line;
+        int naroo=0;
+        int ll=0 , jj=0;
+            for(ll=saved_line ; ll>=1 ; ll--){
+                for(jj=MAX_LEN ; jj>=0 ; jj--){
+                    if(p1[ll][jj]==0){
+                    }
+                    else if(p1[ll][jj]==' '){
+                        p1[ll][jj]='\0';
+                    }
+                    else if(p1[ll][jj]== '\n'){
+                        p1[ll][jj]='\0';
+                        saved_line2--;
+                    }
+                    else{
+                        naroo=1;
+                        break;
+                    }
+                }
+                if(naroo==1){
+                    break;
+                }
+
+            }
+
+        int len = 0;
+
+        char str2[100000];
+        for(int k=0 ; k<1000 ; k++){
+            str2[k]=0;
+        }
+
+        printf("%s\n" , str2);
+        for(int k=0 ; k<MAX_LEN ; k++){
+            if(p1[saved_line2][k]!=0){
+            printf("%c" , p1[saved_line2][k]);
+            str2[k] = p1[saved_line2][k];
+            len++;
+            }
+        }
+
+        int n=0;
+        for(int ll=1 ; ll<=saved_line ; ll++){
+            for(int jj=0 ; jj<MAX_LEN ; jj++){
+            rest[n]=p1[ll][jj];
+            n++;
+            }
+        }
+        
+        for(int j=0 ; j<saved_line*MAX_LEN ; j++){
+            rest_backup[j]=rest[j];
+        }
+
+       
+        fptrr = fopen(filename , "a");
+
+        for(int j=0 ; j<saved_line*MAX_LEN ; j++){
+            if(rest_backup[j] != '\0'){
+                fprintf(fptrr , "%c" , rest_backup[j] );
+            }
+        }
+
+        fprintf(fptrr , "\n");
+        
+        for(int o=y-1 ; o>=0 ; o--){
+            fprintf(fptrr , "\t");
+        }
+        fprintf(fptrr , " }");
+        
+
+        for(int ll=0 ; ll<=saved_line ; ll++){
+            for(int jj=0 ; jj<MAX_LEN ; jj++){
+                p1[ll][jj]='\0';
+            }
+        }
+        
+        fclose(fptrr);
+    }
+
+    return_back();
+
+}
+
