@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <dirent.h>
 
 #define MAX_LINES 1000
 #define MAX_LEN 1000
@@ -20,6 +21,7 @@ int are_for_paste=0;
 int are_for_find=0;
 char* filename_for_find;
 char data[MAX_LINES][MAX_LEN]={};
+char filename2[1000000] = ".";
 
 
 void space_seperate(char**);
@@ -43,6 +45,10 @@ void grep(char*);
 void compare(char*);
 void read_line_by_line(char*);
 void auto_indent(char*);
+void tree(char*);
+void print_tree(const char* , int);
+void undo(char*);
+void backup_hidden(char* , char*);
 //void indent_first_brace();
 
 
@@ -120,6 +126,16 @@ int main(){
         else if(!strcmp(command , "auto_indent")){
             tedad=11;
             auto_indent(command_backup);
+        }
+
+        else if(!strcmp(command , "tree")){
+            tedad=4;
+            tree(command_backup);
+        }
+
+        else if(!strcmp(command , "undo")){
+            tedad=4;
+            undo(command_backup);
         }
 
 
@@ -219,8 +235,6 @@ void with_space(char* command){
             }
         }
     }
-
-
 
     else{
        space_seperate(&command_backup);
@@ -503,7 +517,7 @@ void insertstr(char* command){
 
     char* slash_filename = strrchr(word_num[2] , '/');
     char* filename=slash_filename+1;
-
+    
     char* string_to_be_added = word_num[4];
     char string2[1000000];
     char* newline = "\\n";
@@ -538,6 +552,7 @@ void insertstr(char* command){
     if(res == -1){
         return;
     }
+    backup_hidden(filename , word_num[2]);
     
     if((!strcmp(word_num[1] , "--file")) && (!strcmp(word_num[3] , "--str")) && (!strcmp(word_num[5] , "-pos"))){
 
@@ -559,6 +574,7 @@ void removestr(char* command){
     char* slash_filename = strrchr(word_num[2] , '/');
     char* filename=slash_filename+1;
 
+
     find_pos(word_num[4]);
 
     long int size_removed = strtol(word_num[6] , &word_num[6] , 10 );
@@ -572,6 +588,8 @@ void removestr(char* command){
     if(res == -1){
         return;
     }
+
+    backup_hidden(filename , word_num[2]);
 
     if((!strcmp(word_num[1] , "--file")) && (!strcmp(word_num[3] , "-pos")) && (!strcmp(word_num[5] , "-size"))){
         FILE* fptr;
@@ -1177,16 +1195,19 @@ void auto_indent(char* command){
 
     space_seperate(&command);
 
-    char* slash_filename = strrchr(word_num[1] , '/');
+
+    char* slash_filename = strrchr(word_num[2] , '/');
     char* filename=slash_filename+1;
+
 
     char p1[1000][1000];
     char p2[1000][1000];
 
-    int res = go_to_folder(word_num[4]);
+    int res = go_to_folder(word_num[2]);
     if(res == -1){
         return;
     }
+    backup_hidden(filename , word_num[2]);
 
     char rest[10000];
     char rest_backup[10000];
@@ -1226,7 +1247,6 @@ void auto_indent(char* command){
                     data[l][j]='\0';
                     saved_line = l;
                     saved_ch = j;
-                printf("%d %d\n" , l , j);
                     for(int ll=1 ; ll<l ; ll++){
                         for(int jj=0 ; jj<MAX_LEN ; jj++){
                         p1[ll][jj]=data[ll][jj];
@@ -1279,10 +1299,8 @@ void auto_indent(char* command){
             str2[k]=0;
         }
 
-        printf("%s\n" , str2);
         for(int k=0 ; k<MAX_LEN ; k++){
             if(p1[saved_line2][k]!=0){
-            printf("%c" , p1[saved_line2][k]);
             str2[k] = p1[saved_line2][k];
             len++;
             }
@@ -1344,7 +1362,6 @@ void auto_indent(char* command){
                     data[l][j]='\0';
                     saved_line = l;
                     saved_ch = j;
-                printf("%d %d\n" , l , j);
                     for(int ll=1 ; ll<l ; ll++){
                         for(int jj=0 ; jj<MAX_LEN ; jj++){
                         p1[ll][jj]=data[ll][jj];
@@ -1397,10 +1414,8 @@ void auto_indent(char* command){
             str2[k]=0;
         }
 
-        printf("%s\n" , str2);
         for(int k=0 ; k<MAX_LEN ; k++){
             if(p1[saved_line2][k]!=0){
-            printf("%c" , p1[saved_line2][k]);
             str2[k] = p1[saved_line2][k];
             len++;
             }
@@ -1445,6 +1460,142 @@ void auto_indent(char* command){
     }
 
     return_back();
-
 }
 
+void tree(char* command){
+
+    space_seperate(&command);
+    int depth=0;
+    depth = strtol(word_num[1] , &word_num[1] , 10);
+    //printf("%d\n" , depth);
+    print_tree("." , depth);
+}
+
+void print_tree(const char* dirname , int depth){
+
+    static int counter=0;
+
+    DIR* dir = opendir(dirname);
+    if (dir == NULL) {
+        return;
+    }
+
+    for(int j=0 ; j<=counter ; j++){
+        printf(" ");
+    }
+    printf("inja:%s\n", dirname);
+
+    struct dirent* entity;
+
+    entity = readdir(dir);
+
+    if(entity == NULL){
+        printf("Error opening directory");
+    }
+
+    while (entity != NULL) {
+        //printf("%hhd %s/%s\n", entity->d_type, dirname, entity->d_name);
+        if(entity->d_type == DT_DIR){
+            printf("|");
+            for(int j=0 ; j<4 ; j++){
+                printf("-");
+            }
+            printf("%s\n" , entity->d_name);
+          // for(int j=0 ; j>counter ; j++){
+            //printf("%s\n" , dirname);
+           //}
+        }
+
+        // if(entity->d_type == DT ){
+        //     printf("%s\n" , entity->d_name);
+        //   // for(int j=0 ; j>counter ; j++){
+        //     printf("|\n");
+        //    //}
+        // }
+        if (entity->d_type == DT_DIR && strcmp(entity->d_name, ".") != 0 && strcmp(entity->d_name, "..") != 0) {
+            char path[100] = { 0 };
+            strcat(path, dirname);
+            strcat(path, "/");
+            strcat(path, entity->d_name);
+            if(depth-1 > -1){
+                counter++;
+                print_tree(path , depth-1);
+            }
+        }
+        entity = readdir(dir);
+    }
+
+    closedir(dir);
+}
+
+void undo(char* command){
+
+    space_seperate(&command);
+    printf("%s\n" , word_num[2]);
+
+    char* slash_filename = strrchr(word_num[2] , '/');
+    char* filename=slash_filename+1;
+
+    int res=go_to_folder(word_num[2]);
+
+    if(res == -1){
+        return;
+    }   
+
+    FILE* ptr;
+    FILE* ptr2;
+    char ch[100000]={};
+
+    ptr = fopen(filename, "w");
+    ptr2 = fopen(filename2 , "r");
+
+     if (NULL != ptr) {
+        while(fgets(ch , 100000 , ptr2)){
+            fprintf( ptr , "%s" , ch);
+                }
+               // fprintf(ptr , "\n");
+            }
+
+            else{
+                printf("file can't be opened\n");
+            }
+
+        fclose(ptr);
+        fclose(ptr2);
+
+        return_back();
+}
+
+void backup_hidden(char* filename , char* path){
+
+//    int res=go_to_folder(word_num[2]);
+
+//     if(res == -1){
+//         return;
+//     }
+
+    strcat(filename2 , filename);
+
+    FILE* ptr;
+    FILE* ptr2;
+    char ch[100000]={};
+
+    ptr = fopen(filename, "r");
+    ptr2 = fopen(filename2 , "w");
+ 
+    if (NULL != ptr) {
+        while(fgets(ch , 100000 , ptr)){
+            fprintf( ptr2 , "%s" , ch);
+                }
+               // fprintf(ptr2 , "\n");
+            }
+
+            else{
+                printf("file can't be opened\n");
+            }
+
+        fclose(ptr);
+        fclose(ptr2);
+
+    //return_back();
+}
