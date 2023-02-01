@@ -21,7 +21,7 @@ int are_for_paste=0;
 int are_for_find=0;
 char* filename_for_find;
 char data[MAX_LINES][MAX_LEN]={};
-char filename2[1000000] = ".";
+
 
 
 void space_seperate(char**);
@@ -49,7 +49,9 @@ void tree(char*);
 void print_tree(const char* , int);
 void undo(char*);
 void backup_hidden(char* , char*);
-//void indent_first_brace();
+int countOccurrences(FILE* , const char*);
+void nthOccurrences(FILE* , const char* , int);
+void findstr_option(char* , FILE* , char*);
 
 
 int main(){
@@ -852,12 +854,11 @@ void write_to_file(char* filename ,char* content , char* string_to_be_added , ch
 
 void findstr(char* command){
 
+    char* command_backup = (char*) calloc(2000 , sizeof(char));
+    strcpy(command_backup , command);
+
     str_with_space(command);
     filename_with_space(command);
-
-    if(are_for_find){
-    word_num[4]=filename_for_find;
-    }
 
     char* slash_filename = strrchr(word_num[4] , '/');
     char* filename=slash_filename+1;
@@ -868,6 +869,20 @@ void findstr(char* command){
     if(res == -1){
         return;
     }
+        FILE* fptr;
+        fptr = fopen(filename , "r");
+
+
+
+    if(i>5){
+        findstr_option(command_backup , fptr , filename);
+    }
+
+    else{
+        if(are_for_find){
+            word_num[4]=filename_for_find;
+        }
+
 
     // char* str_backup;
     // str_backup = word_num[2];
@@ -899,11 +914,10 @@ void findstr(char* command){
     // printf("%s\n" , wordd);
 
     if((!strcmp(word_num[1] , "--str")) && (!strcmp(word_num[3] , "--file"))){
-        FILE* fptr;
+      
         char* whole;
         int ch = 0;
         int k=0;
-        fptr = fopen(filename, "r");
  
         if (fptr != NULL) {
             ch = fgetc(fptr);
@@ -929,7 +943,8 @@ void findstr(char* command){
     else{
         printf("Invalid command");
     }
-
+    }
+    fclose(fptr);
     return_back();
 }
 
@@ -1531,10 +1546,13 @@ void print_tree(const char* dirname , int depth){
 void undo(char* command){
 
     space_seperate(&command);
-    printf("%s\n" , word_num[2]);
 
     char* slash_filename = strrchr(word_num[2] , '/');
     char* filename=slash_filename+1;
+
+    
+    char filename2[1000000] = ".";
+    strcat(filename2 , filename);
 
     int res=go_to_folder(word_num[2]);
 
@@ -1568,12 +1586,7 @@ void undo(char* command){
 
 void backup_hidden(char* filename , char* path){
 
-//    int res=go_to_folder(word_num[2]);
-
-//     if(res == -1){
-//         return;
-//     }
-
+    char filename2[1000000] = ".";
     strcat(filename2 , filename);
 
     FILE* ptr;
@@ -1587,7 +1600,6 @@ void backup_hidden(char* filename , char* path){
         while(fgets(ch , 100000 , ptr)){
             fprintf( ptr2 , "%s" , ch);
                 }
-               // fprintf(ptr2 , "\n");
             }
 
             else{
@@ -1597,5 +1609,107 @@ void backup_hidden(char* filename , char* path){
         fclose(ptr);
         fclose(ptr2);
 
-    //return_back();
+}
+
+int countOccurrences(FILE *fptr, const char *word)
+{
+    char str[10000];
+    char *pos;
+
+    int index, count;
+    
+    count = 0;
+
+    while ((fgets(str, 10000 , fptr)) != NULL)
+    {
+        index = 0;
+
+        while ((pos = strstr(str + index, word)) != NULL)
+        {
+            index = (pos - str) + 1;
+            count++;
+        }
+    }
+
+    return count;
+}
+
+void nthOccurrences(FILE *fptr, const char *word , int nth)
+{
+    char str[10000];
+    char *pos;
+
+    int index, count;
+    
+    count = 0;
+
+    while ((fgets(str, 10000 , fptr)) != NULL)
+    {
+        index = 0;
+
+        while ((pos = strstr(str + index, word)) != NULL)
+        {
+
+            index = (pos - str) + 1;
+            if(count+1 == nth){
+               printf("%d\n" , index-1);
+            }
+            count++;
+        }
+    }
+}
+
+void findstr_option(char* command , FILE* fptr , char* filename){
+
+    space_seperate(&command);
+
+    char* string_to_be_searched = word_num[2];
+
+     if((!strcmp(word_num[1] , "--str")) && (!strcmp(word_num[3] , "--file"))){
+    
+        if(!strcmp(word_num[5] , "-count")){
+            if(fptr == NULL){
+                printf("file can't be opened\n");
+            }
+            else{
+                int counter = countOccurrences(fptr , string_to_be_searched);
+                    printf("%d\n" , counter);
+            }
+        }
+
+        else if(!strcmp(word_num[5] , "-at")){
+            int nth = strtol(word_num[6] , &word_num[6] , 10 );
+            if(fptr == NULL){
+                printf("file can't be opened\n");
+            }
+            else{
+                nthOccurrences(fptr , string_to_be_searched , nth);
+            }
+        }
+
+        else if(!strcmp(word_num[5] , "-byword")){
+            read_line_by_line(filename);
+            //printf("%s" , data[1]);
+            char* fword[10000];
+            char* chert = strtok(data[1], " ");
+    
+            int j = 0;
+
+            while (chert != NULL){
+                fword[j] = chert;
+                chert = strtok(NULL," ");
+                j++;
+            }
+
+            for(int k=0 ; k<j ; k++){
+              //  printf("%s\n" , fword[k]);
+                if(!strcmp(fword[k] , string_to_be_searched)){
+                    printf("%d\n" , k+1);
+                    break;
+                }
+
+            }
+           
+        }
+    }
 }
