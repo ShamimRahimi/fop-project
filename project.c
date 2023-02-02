@@ -21,6 +21,7 @@ int are_for_paste=0;
 int are_for_find=0;
 char* filename_for_find;
 char data[MAX_LINES][MAX_LEN]={};
+int dont_replace=0;
 
 
 
@@ -52,6 +53,7 @@ void backup_hidden(char* , char*);
 int countOccurrences(FILE* , const char*);
 void nthOccurrences(FILE* , const char* , int);
 void findstr_option(char* , FILE* , char*);
+void replace(char*);
 
 
 int main(){
@@ -113,6 +115,11 @@ int main(){
         else if(!strcmp(command , "find")){
             tedad=4;
             findstr(command_backup);
+        }
+
+        else if(!strcmp(command , "replace")){
+            tedad=7;
+            replace(command_backup);
         }
 
         else if(!strcmp(command , "grep")){
@@ -549,17 +556,20 @@ void insertstr(char* command){
     }
 
     find_pos(word_num[6]);
-
-    int res=go_to_folder(word_num[2]);
-    if(res == -1){
-        return;
-    }
+    if(!dont_replace){
+        int res=go_to_folder(word_num[2]);
+        if(res == -1){
+            return;
+        }
     backup_hidden(filename , word_num[2]);
+    }
     
     if((!strcmp(word_num[1] , "--file")) && (!strcmp(word_num[3] , "--str")) && (!strcmp(word_num[5] , "-pos"))){
 
         take_parts(filename , string_to_be_added);
+         if(!dont_replace){
         return_back();
+         }
 
     }
 
@@ -585,21 +595,21 @@ void removestr(char* command){
     char to_be_deleted[100]={};
     char p2[1000000]={};
 
-
+     if(!dont_replace){
     int res=go_to_folder(word_num[2]);
     if(res == -1){
         return;
     }
 
     backup_hidden(filename , word_num[2]);
-
+     }
     if((!strcmp(word_num[1] , "--file")) && (!strcmp(word_num[3] , "-pos")) && (!strcmp(word_num[5] , "-size"))){
-        FILE* fptr;
+            FILE* fptr;
+            fptr = fopen(filename, "r");
         int ch = 0;
         int k=0;
         int cnt_line = 1;
         int cnt_c = 0;
-        fptr = fopen(filename, "r");
         
         if(fptr == NULL){
             printf("file doesn't exist \n");
@@ -655,8 +665,9 @@ void removestr(char* command){
 
             }
              fclose(fptr);
-
+             if(!dont_replace){
             return_back();
+             }
     }
 
     else{
@@ -869,10 +880,9 @@ void findstr(char* command){
     if(res == -1){
         return;
     }
-        FILE* fptr;
-        fptr = fopen(filename , "r");
 
-
+    FILE* fptr;
+    fptr = fopen(filename , "r");
 
     if(i>5){
         findstr_option(command_backup , fptr , filename);
@@ -1665,7 +1675,7 @@ void findstr_option(char* command , FILE* fptr , char* filename){
 
     char* string_to_be_searched = word_num[2];
 
-     if((!strcmp(word_num[1] , "--str")) && (!strcmp(word_num[3] , "--file"))){
+    if((!strcmp(word_num[1] , "--str")) && (!strcmp(word_num[3] , "--file"))){
     
         if(!strcmp(word_num[5] , "-count")){
             if(fptr == NULL){
@@ -1677,7 +1687,7 @@ void findstr_option(char* command , FILE* fptr , char* filename){
             }
         }
 
-        else if(!strcmp(word_num[5] , "-at")){
+        else if(!strcmp(word_num[5] , "-at") && strcmp(word_num[7] , "-byword")){
             int nth = strtol(word_num[6] , &word_num[6] , 10 );
             if(fptr == NULL){
                 printf("file can't be opened\n");
@@ -1687,7 +1697,7 @@ void findstr_option(char* command , FILE* fptr , char* filename){
             }
         }
 
-        else if(!strcmp(word_num[5] , "-byword")){
+        else if(!strcmp(word_num[5] , "-byword") && strcmp(word_num[6] , "-at")){
             read_line_by_line(filename);
             //printf("%s" , data[1]);
             char* fword[10000];
@@ -1707,9 +1717,156 @@ void findstr_option(char* command , FILE* fptr , char* filename){
                     printf("%d\n" , k+1);
                     break;
                 }
-
             }
+        }
+
+        else if(!strcmp(word_num[5] , "-all")){
+            char str[10000];
+            char *pos;
+
+            int index;
+
+            while ((fgets(str, 10000 , fptr)) != NULL){
+                index = 0;
+
+                while ((pos = strstr(str + index, string_to_be_searched)) != NULL){
+                    index = (pos - str) + 1;
+                    printf("%d," , index-1);
+                }
+            }
+        }
+
+        else if((!strcmp(word_num[5] , "-at") && !strcmp(word_num[7] , "-byword")) || (!strcmp(word_num[6] , "-at") && !strcmp(word_num[5] , "-all"))){
            
         }
     }
+}
+
+void replace(char* command){
+
+    space_seperate(&command);
+
+//      printf("%s\n" , path);
+
+    // // char* path = (char*) calloc(200000 , sizeof(char));
+    // // path = word_num[6];
+    // path = word_num[6];
+    char* slash_filename = strrchr(word_num[6] , '/');
+    char* filename=slash_filename+1;
+
+    char path[1000];
+    strcpy(path , word_num[6]);
+
+    int res=go_to_folder(word_num[6]);
+    if(res == -1){
+        return;
+    }
+
+    char* string_to_be_searched = word_num[2];
+    char* string_to_be_replace = word_num[4];
+
+
+    if(i==7){
+        FILE* fptr;
+        fptr = fopen(filename , "r");
+        char* whole;
+        int ch = 0;
+        int k=0;
+ 
+        if (fptr != NULL) {
+            ch = fgetc(fptr);
+            while(ch != EOF){
+                whole[k]=ch;
+                ch = fgetc(fptr);
+                k++;
+            }
+        }
+       
+        else{
+            printf("file can't be opened\n");
+        }
+
+        char* ptr = strstr(whole , string_to_be_searched);
+        int first_pos = ptr - whole;
+        if(first_pos < 0){
+            printf("-1");
+            return;
+        }
+    
+        char* cmd2 = (char*) calloc(2000 , sizeof(char));
+        char* cmd3 = (char*) calloc(2000 , sizeof(char));
+
+        int size = strlen(string_to_be_searched);
+        sprintf(cmd2 , "removestr --file %s -pos 1:%d -size %d -f" , path , first_pos , size);
+        removestr(cmd2);
+        sprintf(cmd3 , "insertstr --file %s --str %s -pos 1:%d" , path , string_to_be_replace , first_pos);
+        insertstr(cmd3);
+    }
+
+    else if(i==9 && !strcmp(word_num[7] , "-at")){
+        FILE* fptr;
+        fptr = fopen(filename , "r");
+        
+        int nth = strtol(word_num[8] , &word_num[8] , 10 );
+
+        char str[10000];
+        char *pos;
+
+        int index, count;
+        
+        count = 0;
+
+        while ((fgets(str, 10000 , fptr)) != NULL){
+            while ((pos = strstr(str + index, string_to_be_searched)) != NULL){
+                index = (pos - str) + 1;
+                if(count+1 == nth){
+                    char* cmd2 = (char*) calloc(2000 , sizeof(char));
+                    char* cmd3 = (char*) calloc(2000 , sizeof(char));
+                    int size = strlen(string_to_be_searched);
+                    dont_replace=1;
+                    fclose(fptr);
+                    sprintf(cmd2 , "removestr --file %s -pos 1:%d -size %d -f" , path , index-1 , size);
+                    removestr(cmd2);
+                    sprintf(cmd3 , "insertstr --file %s --str %s -pos 1:%d" , path , string_to_be_replace , index-1);
+                    insertstr(cmd3);
+                }
+                count++;
+            }
+            index = 0;
+        }
+    }
+
+    else if(i==8 && !strcmp(word_num[7] , "-all")){
+        FILE* fptr;
+        fptr = fopen(filename , "r");
+
+        char str[10000];
+        char *pos;
+
+        int index;
+        int p=0;
+        int difference;
+
+        while ((fgets(str, 10000 , fptr)) != NULL){
+            while ((pos = strstr(str + index, string_to_be_searched)) != NULL){
+                index = (pos - str) + 1;
+                char* cmd2 = (char*) calloc(2000 , sizeof(char));
+                char* cmd3 = (char*) calloc(2000 , sizeof(char));
+                int size = strlen(string_to_be_searched);
+                difference = (size - strlen(string_to_be_replace))*p;
+                fclose(fptr);
+                dont_replace=1;
+                sprintf(cmd2 , "removestr --file %s -pos 1:%d -size %d -f" , path , index-1-difference , size);
+                removestr(cmd2);
+                sprintf(cmd3 , "insertstr --file %s --str %s -pos 1:%d" , path , string_to_be_replace , index-1-difference);
+                insertstr(cmd3);
+                p++;
+            }
+            index = 0;
+        }
+    }
+
+    return_back();
+
+
 }
