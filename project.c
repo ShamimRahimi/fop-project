@@ -47,7 +47,7 @@ void compare(char*);
 void read_line_by_line(char*);
 void auto_indent(char*);
 void tree(char*);
-void print_tree(const char* , int);
+void print_tree(const char* , const int , int , int);
 void undo(char*);
 void backup_hidden(char* , char*);
 int countOccurrences(FILE* , const char*);
@@ -918,7 +918,7 @@ void findstr(char* command){
 //         str_count++;
 //     }
 
-   // printf("strs: %s\n", str_num[0]);
+    // printf("strs: %s\n", str_num[0]);
 
     // char*wordd = strchr (word_num[3] , '*');
     // printf("%s\n" , wordd);
@@ -1493,61 +1493,47 @@ void tree(char* command){
     int depth=0;
     depth = strtol(word_num[1] , &word_num[1] , 10);
     //printf("%d\n" , depth);
-    print_tree("." , depth);
+    int depth_cnt = -1;
+    char s[1000];
+    getcwd(s,sizeof(s));
+    char* curdir = strrchr(s , '/');
+    printf("%s\n" , curdir+1);
+    //printf("|\n");
+    print_tree("." , 0 , depth , depth_cnt);
 }
 
-void print_tree(const char* dirname , int depth){
+void print_tree(const char* dirname ,const int root , int depth , int depth_cnt){
+    
+    int i;
+    char path[1000];
+    struct dirent *dp;
+    DIR *dir = opendir(dirname);
+    depth_cnt++;
+    // printf("cnt: %d\n" , depth_cnt);
+    // printf("depth: %d\n" , depth);
+         if(depth_cnt == depth){
+                return;
+            }
 
-    static int counter=0;
-
-    DIR* dir = opendir(dirname);
-    if (dir == NULL) {
+    if (!dir)
         return;
-    }
 
-    for(int j=0 ; j<=counter ; j++){
-        printf(" ");
-    }
-    printf("inja:%s\n", dirname);
-
-    struct dirent* entity;
-
-    entity = readdir(dir);
-
-    if(entity == NULL){
-        printf("Error opening directory");
-    }
-
-    while (entity != NULL) {
-        //printf("%hhd %s/%s\n", entity->d_type, dirname, entity->d_name);
-        if(entity->d_type == DT_DIR){
-            printf("|");
-            for(int j=0 ; j<4 ; j++){
-                printf("-");
+    while ((dp = readdir(dir)) != NULL){
+        if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0){
+            if( dp->d_name[0]!= '.'){
+            for (i=0; i<root ; i++) {
+                printf("|  ");
             }
-            printf("%s\n" , entity->d_name);
-          // for(int j=0 ; j>counter ; j++){
-            //printf("%s\n" , dirname);
-           //}
-        }
-
-        // if(entity->d_type == DT ){
-        //     printf("%s\n" , entity->d_name);
-        //   // for(int j=0 ; j>counter ; j++){
-        //     printf("|\n");
-        //    //}
-        // }
-        if (entity->d_type == DT_DIR && strcmp(entity->d_name, ".") != 0 && strcmp(entity->d_name, "..") != 0) {
-            char path[100] = { 0 };
-            strcat(path, dirname);
+            }
+            if( dp->d_name[0]!= '.'){
+                printf("├──%s\n", dp->d_name);
+            }
+           
+            strcpy(path, dirname);
             strcat(path, "/");
-            strcat(path, entity->d_name);
-            if(depth-1 > -1){
-                counter++;
-                print_tree(path , depth-1);
-            }
+            strcat(path, dp->d_name);
+            print_tree(path, root + 1 , depth , depth_cnt);
         }
-        entity = readdir(dir);
     }
 
     closedir(dir);
