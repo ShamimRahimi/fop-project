@@ -5,9 +5,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <ncurses.h>
 
-#define MAX_LINES 10000
-#define MAX_LEN 10000
+#define MAX_LINES 1000
+#define MAX_LEN 1000
 
 char* word_num[1000];
 char copied[1000];
@@ -58,6 +59,7 @@ void findstr_option(char* , FILE* , char*);
 void replace(char*);
 void findstr_option2(char* , FILE* , char*);
 void findstr_option3(char* , FILE* , char*);
+void find_w(char* , char* , char*);
 
 int main(){
 
@@ -155,6 +157,7 @@ int main(){
             printf("Invalid command\n");
         }
     }
+
     return 0;
 }
 
@@ -935,10 +938,22 @@ void findstr(char* command){
     str_with_space(command);
     filename_with_space(command);
 
+   // for(int k=0 ; k<strlen(word_num[2]) ; k++){
+   // }
+
     char* slash_filename = strrchr(word_num[4] , '/');
     char* filename=slash_filename+1;
 
     char* string_to_be_searched = word_num[2];
+
+    if(word_num[2][0]=='*' || word_num[2][strlen(word_num[2])-1]=='*'){
+        find_w(word_num[4] , filename , string_to_be_searched);
+        return;
+    }
+    // else if(word_num[2][strlen(word_num[2])-1]=='*'){
+    //     printf("hi\n");
+    //     // break;
+    // }
 
     int res=go_to_folder(word_num[4]);
     if(res == -1){
@@ -960,11 +975,8 @@ void findstr(char* command){
         findstr_option3(command_backup , fptr , filename);
     }
 
-    // else if(i==7){
-            
-    // }
-
     else{
+
         if(are_for_find){
             word_num[4]=filename_for_find;
         }
@@ -1194,9 +1206,9 @@ void compare(char* command){
     }
 
     read_line_by_line(filename1);
-    if(kh){
-        return;
-    }
+    // if(kh){
+    //     return;
+    // }
 
     for(int j=1 ; j<MAX_LINES ; j++){
         strcpy(data1[j] , data[j]);
@@ -1307,7 +1319,7 @@ void read_line_by_line(char* filename){
 
 void auto_indent(char* command){
 
-    // space_seperate(&command);
+   // space_seperate(&command);
     with_space(command);
 
 
@@ -1447,7 +1459,7 @@ void auto_indent(char* command){
 
         fprintf(fptrr , " {\n");
 
-        if(y==cnt_open-1){
+        if(y==cnt_open-1 && cnt_open!=1){
             for(int o=-1 ; o<y-1 ; o++){
             fprintf(fptrr , "\t");
         }
@@ -1652,7 +1664,23 @@ void undo(char* command){
 
     FILE* ptr;
     FILE* ptr2;
+    FILE* ptr3;
+    FILE* ptr4;
     char ch[100000]={};
+    char ch2[100000]={};
+    char ch3[100000]={};
+    char str1[100000]={};
+
+    ptr3=fopen(filename , "r");
+    ptr4 = fopen(".hide" , "w");
+    while(fgets(ch2 , 100000 , ptr3)){
+        fprintf( ptr4 , "%s" , ch2);
+    }
+
+        //printf("%s\n" , str1);
+            // fprintf(ptr , "\n");
+    fclose(ptr3);
+    fclose(ptr4);
 
     ptr = fopen(filename, "w");
     ptr2 = fopen(filename2 , "r");
@@ -1666,10 +1694,31 @@ void undo(char* command){
 
             else{
                 printf("file can't be opened\n");
+                return;
             }
 
-        fclose(ptr);
-        fclose(ptr2);
+    fclose(ptr);
+    fclose(ptr2);
+
+    ptr = fopen(filename2, "w");
+    ptr2 = fopen(".hide" , "r");
+
+     if (NULL != ptr) {
+        while(fgets(ch3 , 100000 , ptr2)){
+            fprintf( ptr , "%s" , ch3);
+                }
+               // fprintf(ptr , "\n");
+            }
+
+            else{
+                printf("file can't be opened\n");
+                return;
+            }
+
+    fclose(ptr);
+    fclose(ptr2);
+
+
 
         return_back();
 }
@@ -1887,6 +1936,7 @@ void findstr_option2(char* command , FILE* fptr , char* filename){
 
 void findstr_option3(char* command , FILE* fptr , char* filename){
 
+
     space_seperate(&command);
 
     char* string_to_be_searched = word_num[2];
@@ -1920,6 +1970,9 @@ void findstr_option3(char* command , FILE* fptr , char* filename){
                     }
                 }
             }
+            if(count_words < nth){
+                printf("Just found %d -%s- in %s\n" , count_words , string_to_be_searched , filename);
+            }
       }
 
       else if((!strcmp(word_num[5] , "-byword") && !strcmp(word_num[6] , "-at"))){
@@ -1929,7 +1982,6 @@ void findstr_option3(char* command , FILE* fptr , char* filename){
             if(kh){
                 return;
             }
-            //printf("%s" , data[1]);
             char* fword[10000];
             char* chert = strtok(data[1], " ");
     
@@ -1948,6 +2000,9 @@ void findstr_option3(char* command , FILE* fptr , char* filename){
                         printf("%d\n" , k+1);
                     }
                 }
+            }
+            if(count_words < nth){
+                printf("Just found %d -%s- in %s\n" , count_words , string_to_be_searched , filename);
             }
 
       }
@@ -2094,4 +2149,79 @@ void replace(char* command){
     }
 
     return_back();
+}
+
+void find_w(char* path , char* filename , char* string_to_be_searched){
+
+    int res=go_to_folder(word_num[4]);
+    if(res == -1){
+        return;
+    }
+
+    FILE* fptr;
+    fptr = fopen(filename , "r");
+
+    if(string_to_be_searched[0]=='*'){
+
+        string_to_be_searched=string_to_be_searched+1;
+
+        char str[10000];
+        char *pos;
+
+        int index , nnn=0;
+
+        while ((fgets(str, 10000 , fptr)) != NULL)
+        {
+            index = 0;
+
+            while ((pos = strstr(str + index, string_to_be_searched)) != NULL)
+            {
+
+                index = (pos - str) + 1;
+                if(str[index-2]!=' ' && str[index-2]!='\n' && str[index-2]!='\0' && str[index-2]!=EOF){
+                    for(int k=index-2 ; k>=0 ; k--){
+                        if(str[k]==' ' || str[k]=='\n' || str[k]=='\0'){
+                            printf("%d\n" , k+1);
+                            nnn=1;
+                            break;
+                        }
+                    }
+                    if(nnn==1){
+                        break;
+                    }
+                }
+            }
+        
+        }  
+    }
+
+    else if(string_to_be_searched[strlen(string_to_be_searched)-1]=='*'){
+
+        string_to_be_searched[strlen(string_to_be_searched)-1] = '\0';
+
+        char str[10000];
+        char *pos;
+
+        int index , nnn=0;
+
+        while ((fgets(str, 10000 , fptr)) != NULL)
+        {
+            index = 0;
+
+            while ((pos = strstr(str + index, string_to_be_searched)) != NULL)
+            {
+
+                index = (pos - str) + 1;
+                if(str[index]!=' ' && str[index]!='\n' && str[index]!='\0' && str[index]!=EOF){
+                   printf("%d\n" , index-1);
+                   break;
+                }
+            }
+        
+        }  
+    }
+
+    fclose(fptr);
+    return_back();
+
 }
