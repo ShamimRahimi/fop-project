@@ -10,8 +10,8 @@
 #define MAX_LINES 1000
 #define MAX_LEN 1000
 
-char* word_num[1000];
-char copied[1000];
+char* word_num[10000];
+char copied[10000];
 int cnt = 0;
 long int lineno;
 long int start_pos;
@@ -23,10 +23,7 @@ int are_for_find=0;
 char* filename_for_find;
 char data[MAX_LINES][MAX_LEN]={};
 int dont_replace=0;
-char str_backup[1000000];
 int kh=0;
-
-
 
 void space_seperate(char**);
 void with_space(char*);
@@ -65,7 +62,7 @@ int main(){
 
     while(1){
 
-        char* command = (char*) calloc(2000 , sizeof(char));
+        char* command = (char*) calloc(2000000000 , sizeof(char));
         scanf("%[^\n]%*c" , command );
 
         char* command_backup = (char*) calloc(2000 , sizeof(char));
@@ -163,12 +160,12 @@ int main(){
 
 void with_space(char* command){
 
-   char* sticked2 = (char*)calloc(100000 , sizeof(char));
+   char* sticked2 = (char*)calloc(10000000 , sizeof(char));
 
-    char* command_backup = (char*) calloc(2000 , sizeof(char));
+    char* command_backup = (char*) calloc(2000000 , sizeof(char));
     strcpy(command_backup , command);
 
-    char* sticked = (char*) calloc(100000 , sizeof(char));
+    char* sticked = (char*) calloc(1000000 , sizeof(char));
     
     if(command[tedad+8] == '\"'){
         are_for_paste = 1;
@@ -260,12 +257,12 @@ void with_space(char* command){
 
 void str_with_space(char* command){
 
-     char* sticked = (char*) calloc(100000 , sizeof(char));
-     char* sticked2 = (char*)calloc(100000 , sizeof(char));
+     char* sticked = (char*) calloc(10000000 , sizeof(char));
+     char* sticked2 = (char*)calloc(10000000 , sizeof(char));
 
-    char* command_backup = (char*) calloc(2000 , sizeof(char));
+    char* command_backup = (char*) calloc(200000 , sizeof(char));
     strcpy(command_backup , command);
-    char* command_backup2 = (char*) calloc(2000 , sizeof(char));
+    char* command_backup2 = (char*) calloc(200000 , sizeof(char));
     strcpy(command_backup2 , command);
 
     int injast = 0;
@@ -292,7 +289,7 @@ void str_with_space(char* command){
                 injast = k;
             }
         }
-        char* string = (char*) calloc(2000 , sizeof(char));
+        char* string = (char*) calloc(200000 , sizeof(char));
         int o=0;
         for(int k=12 ; k<pos-2 ; k++){
             string[o]=command[k];
@@ -320,10 +317,10 @@ void filename_with_space(char* command){
     pos = ptr - command;
     if(command[pos+7]== '\"'){
     are_for_find=1;
-    char* command_backup = (char*) calloc(2000 , sizeof(char));
+    char* command_backup = (char*) calloc(200000 , sizeof(char));
     strcpy(command_backup , command);
-    char* sticked = (char*) calloc(100000 , sizeof(char));
-    char* sticked2 = (char*)calloc(100000 , sizeof(char));
+    char* sticked = (char*) calloc(1000000 , sizeof(char));
+    char* sticked2 = (char*)calloc(1000000 , sizeof(char));
 
     char* aha = strtok(command, "/");
 
@@ -352,7 +349,7 @@ void filename_with_space(char* command){
 
 void space_seperate(char* command[]){
 
-    char* command_backup = (char*) calloc(2000 , sizeof(char));
+    char* command_backup = (char*) calloc(2000000 , sizeof(char));
     strcpy(command_backup , *command);
     char* chert = strtok(*command, " ");
     
@@ -397,7 +394,8 @@ int go_to_folder(char* path){
 
 void return_back(){
 
-    char s[100];
+    char s[1000];
+    getcwd(s,sizeof(s));
     for(int jj = 0 ; jj<cnt-2 ; jj++){
             chdir("..");
          }
@@ -502,30 +500,21 @@ void cat(char* command){
         return;
     }
     FILE* ptr;
-    char ch[100000]={};
+    char* ch = (char*) calloc(200000000 , sizeof(char));
     if(!strcmp(word_num[1] , "--file")){
         
         ptr = fopen(filename, "r");
  
             if (NULL != ptr) {
-                while(fgets(ch , 100000 , ptr)){
+                while(fgets(ch , 10000000 , ptr)){
                     printf("%s" , ch);
-                    // if(!strcmp(word_num[3],"=D")){
-                    //     sprintf(str_backup , "%s" , ch);
-                    // }
                 }
                 printf("\n");
-                // if(!strcmp(word_num[3],"=D")){
-                //     sprintf(str_backup , "\n");
-                // }
             }
 
             else{
                 printf("file can't be opened\n");
             }
-            // if(!strcmp(word_num[3],"=D")){
-            // printf("%s\n" , str_backup);
-            // }
 
         fclose(ptr);
         return_back();
@@ -544,12 +533,12 @@ void insertstr(char* command){
     char* filename=slash_filename+1;
     
     char* string_to_be_added = word_num[4];
-    char string2[1000000];
+    char* string2 = (char*) calloc(2000000000 , sizeof(char));
     char* newline = "\\n";
     char* exist = strstr (string_to_be_added , newline);
     char* not_newline = "\\\n";
     int ah = 92;
-    char not_newline2[1000];
+    char* not_newline2 = (char*) calloc(2000000000 , sizeof(char));
     sprintf(not_newline2 , "%c%s" , ah , newline);
     char* exist2 = strstr (string_to_be_added , not_newline2);
 
@@ -621,11 +610,11 @@ void removestr(char* command){
 
     long int size_removed = strtol(word_num[6] , &word_num[6] , 10 );
 
-    char p1[1000000]={};
-    char to_be_deleted[100]={};
-    char p2[1000000]={};
+    char* p1 = (char*) calloc(2000000000 , sizeof(char));
+    char* to_be_deleted = (char*) calloc(2000000000 , sizeof(char));
+    char* p2 = (char*) calloc(2000000000 , sizeof(char));
 
-     if(!dont_replace){
+    if(!dont_replace){
     int res=go_to_folder(word_num[2]);
     if(res == -1){
         return;
@@ -710,13 +699,13 @@ void removestr(char* command){
 
             }
              fclose(fptr);
-             if(!dont_replace){
+            if(!dont_replace){
             return_back();
-             }
+            }
     }
 
     else{
-    printf("Invalid Command");
+        printf("Invalid Command");
     }
 }
 
@@ -731,31 +720,10 @@ void copystr(char* command){
 
     long int size_copied = strtol(word_num[6] , &word_num[6] , 10 ) + 1;
 
-    char p1[1000];
+    char* p1 = (char*) calloc(2000000000 , sizeof(char));
 
     int res=go_to_folder(word_num[2]);
     if(res == -1){
-        // char s[1000];
-        // getcwd(s , sizeof(s));
-        // printf("%s\n" , s);
-        naro=1;
-        return_back();
-        return;
-    }
-
-    read_line_by_line(filename);
-    if(kh){
-        return;
-    }
-
-    if(!strcmp(data[lineno],"\0")){
-        printf("line %ld doesn't exist in %s.\n" , lineno , filename);
-        naro=1;
-        return_back();
-        return;
-    }
-    else if(data[lineno][start_pos]=='\0'){
-        printf("Not enough characters in the %ldth line.\n" , lineno);
         naro=1;
         return_back();
         return;
@@ -824,6 +792,7 @@ void copystr(char* command){
             }
             copytoclipboard(tocopy);
             strcpy(copied , tocopy);
+            printf("%s\n" , copied);
         }
         fclose(fptr);
         return_back();
@@ -862,8 +831,8 @@ void pastestr(char* command){
 void take_parts(char* filename , char* string_to_be_added){
 
 
-    char* content = (char*)malloc(10000 * sizeof(char));
-    char* rest = (char*)malloc(10000 * sizeof(char));
+    char* content = (char*)malloc(1000000 * sizeof(char));
+    char* rest = (char*)malloc(1000000 * sizeof(char));
 
     FILE* fptr;
 
@@ -932,14 +901,11 @@ void write_to_file(char* filename ,char* content , char* string_to_be_added , ch
 
 void findstr(char* command){
 
-    char* command_backup = (char*) calloc(2000 , sizeof(char));
+    char* command_backup = (char*) calloc(2000000 , sizeof(char));
     strcpy(command_backup , command);
 
     str_with_space(command);
     filename_with_space(command);
-
-   // for(int k=0 ; k<strlen(word_num[2]) ; k++){
-   // }
 
     char* slash_filename = strrchr(word_num[4] , '/');
     char* filename=slash_filename+1;
@@ -950,10 +916,6 @@ void findstr(char* command){
         find_w(word_num[4] , filename , string_to_be_searched);
         return;
     }
-    // else if(word_num[2][strlen(word_num[2])-1]=='*'){
-    //     printf("hi\n");
-    //     // break;
-    // }
 
     int res=go_to_folder(word_num[4]);
     if(res == -1){
@@ -980,36 +942,6 @@ void findstr(char* command){
         if(are_for_find){
             word_num[4]=filename_for_find;
         }
-
-
-    // char* str_backup;
-    // str_backup = word_num[2];
-
-    // printf("%c\n" , str_backup[9]);
-
-    // for(int k=0 ; k<strlen(word_num[2]) ; k++){
-    //     if(str_backup[k] == '*'){
-    //         printf("Hi");
-    //     }
-    //     printf("%c " , str_backup[k]);
-    // }
-//     //strcpy(str_backup , word_num[3]);
-//    // printf("%s\n" , str_backup);
-//     char* str_num[100000];
-//     char* chert = strtok(str_backup, " ");
-    
-//     int str_count = 0;
-
-//     while (chert != NULL){
-//         str_num[str_count] = chert;
-//         chert = strtok(NULL," ");
-//         str_count++;
-//     }
-
-    // printf("strs: %s\n", str_num[0]);
-
-    // char*wordd = strchr (word_num[3] , '*');
-    // printf("%s\n" , wordd);
 
     if((!strcmp(word_num[1] , "--str")) && (!strcmp(word_num[3] , "--file"))){
       
@@ -1061,7 +993,7 @@ void grep(char* command){
         word_backup[strlen(word_backup)-1]='\0';
         word_backup=word_backup+1;
     }
-    char pattern[100000]={};
+    char* pattern = (char*) calloc(20000000 , sizeof(char));
 
     char* file_path[10000];
     char* filename[10000];
@@ -1206,9 +1138,6 @@ void compare(char* command){
     }
 
     read_line_by_line(filename1);
-    // if(kh){
-    //     return;
-    // }
 
     for(int j=1 ; j<MAX_LINES ; j++){
         strcpy(data1[j] , data[j]);
@@ -1249,6 +1178,7 @@ void compare(char* command){
         
         fclose(fptr2);
     }
+
     two=two-1;
     len = strlen(data2[two]);
     char *str3 = malloc(len + 1 + 1);
@@ -1319,9 +1249,7 @@ void read_line_by_line(char* filename){
 
 void auto_indent(char* command){
 
-   // space_seperate(&command);
     with_space(command);
-
 
     char* slash_filename = strrchr(word_num[2] , '/');
     char* filename=slash_filename+1;
@@ -1666,10 +1594,11 @@ void undo(char* command){
     FILE* ptr2;
     FILE* ptr3;
     FILE* ptr4;
-    char ch[100000]={};
-    char ch2[100000]={};
-    char ch3[100000]={};
-    char str1[100000]={};
+
+    char* ch = (char*) calloc(200000000 , sizeof(char));
+    char* ch2 = (char*) calloc(200000000 , sizeof(char));
+    char* ch3 = (char*) calloc(200000000 , sizeof(char));
+    char* str1 = (char*) calloc(200000000 , sizeof(char));
 
     ptr3=fopen(filename , "r");
     ptr4 = fopen(".hide" , "w");
@@ -1677,8 +1606,6 @@ void undo(char* command){
         fprintf( ptr4 , "%s" , ch2);
     }
 
-        //printf("%s\n" , str1);
-            // fprintf(ptr , "\n");
     fclose(ptr3);
     fclose(ptr4);
 
@@ -1688,14 +1615,13 @@ void undo(char* command){
      if (NULL != ptr) {
         while(fgets(ch , 100000 , ptr2)){
             fprintf( ptr , "%s" , ch);
-                }
-               // fprintf(ptr , "\n");
-            }
+        }
+    }
 
-            else{
-                printf("file can't be opened\n");
-                return;
-            }
+    else{
+        printf("file can't be opened\n");
+        return;
+    }
 
     fclose(ptr);
     fclose(ptr2);
@@ -1707,7 +1633,6 @@ void undo(char* command){
         while(fgets(ch3 , 100000 , ptr2)){
             fprintf( ptr , "%s" , ch3);
                 }
-               // fprintf(ptr , "\n");
             }
 
             else{
@@ -1718,9 +1643,7 @@ void undo(char* command){
     fclose(ptr);
     fclose(ptr2);
 
-
-
-        return_back();
+    return_back();
 }
 
 void backup_hidden(char* filename , char* path){
@@ -1730,13 +1653,13 @@ void backup_hidden(char* filename , char* path){
 
     FILE* ptr;
     FILE* ptr2;
-    char ch[100000]={};
+    char* ch = (char*) calloc(200000000 , sizeof(char));
 
     ptr = fopen(filename, "r");
     ptr2 = fopen(filename2 , "w");
  
     if (NULL != ptr) {
-        while(fgets(ch , 100000 , ptr)){
+        while(fgets(ch , 10000000 , ptr)){
             fprintf( ptr2 , "%s" , ch);
                 }
             }
@@ -1752,14 +1675,14 @@ void backup_hidden(char* filename , char* path){
 
 int countOccurrences(FILE *fptr, const char *word)
 {
-    char str[10000];
+    char* str = (char*) calloc(200000000 , sizeof(char));
     char *pos;
 
     int index, count;
     
     count = 0;
 
-    while ((fgets(str, 10000 , fptr)) != NULL)
+    while ((fgets(str, 10000000 , fptr)) != NULL)
     {
         index = 0;
 
@@ -1775,14 +1698,14 @@ int countOccurrences(FILE *fptr, const char *word)
 
 void nthOccurrences(FILE *fptr, const char *word , int nth)
 {
-    char str[10000];
+    char* str = (char*) calloc(20000000 , sizeof(char));
      char *pos;
 
      int index, count;
 
      count = 0;
 
-     while ((fgets(str, 10000 , fptr)) != NULL)
+     while ((fgets(str, 1000000 , fptr)) != NULL)
      {
          index = 0;
 
@@ -1800,6 +1723,7 @@ void nthOccurrences(FILE *fptr, const char *word , int nth)
         }
         else if(nth>count && count!=0){
             printf("Only %d -%s- exists in the file.\n" , count , word);
+            break;
         }
      }
  }
@@ -1828,7 +1752,6 @@ void findstr_option(char* command , FILE* fptr , char* filename){
             if(kh){
                 return;
             }
-            //printf("%s" , data[1]);
             char* fword[10000];
             char* chert = strtok(data[1], " ");
     
@@ -1841,7 +1764,6 @@ void findstr_option(char* command , FILE* fptr , char* filename){
             }
 
             for(int k=0 ; k<j ; k++){
-              //  printf("%s\n" , fword[k]);
                 if(!strcmp(fword[k] , string_to_be_searched)){
                     printf("%d\n" , k+1);
                     break;
@@ -1850,12 +1772,12 @@ void findstr_option(char* command , FILE* fptr , char* filename){
         }
 
         else if(!strcmp(word_num[5] , "-all")){
-            char str[10000];
+            char* str = (char*) calloc(20000000 , sizeof(char));
             char *pos;
 
             int index , flag=0;
 
-            while ((fgets(str, 10000 , fptr)) != NULL){
+            while ((fgets(str, 10000000 , fptr)) != NULL){
                 index = 0;
 
                 while ((pos = strstr(str + index, string_to_be_searched)) != NULL){
@@ -1874,10 +1796,6 @@ void findstr_option(char* command , FILE* fptr , char* filename){
         else{
         printf("Invalid command\n");
       }
-
-        // else if((!strcmp(word_num[5] , "-at") && !strcmp(word_num[7] , "-byword")) || (!strcmp(word_num[6] , "-at") && !strcmp(word_num[5] , "-all"))){
-           
-        // }
     }
     else{
         printf("Invalid command\n");
@@ -1903,11 +1821,9 @@ void findstr_option2(char* command , FILE* fptr , char* filename){
         }
         else if((!strcmp(word_num[5] , "-all") && !strcmp(word_num[6] , "-byword")) || (!strcmp(word_num[6] , "-all") && !strcmp(word_num[5] , "-byword"))){
             read_line_by_line(filename);
-            //int count_words=0;
             if(kh){
                 return;
             }
-            //printf("%s" , data[1]);
             char* fword[10000];
             char* chert = strtok(data[1], " ");
     
@@ -1927,11 +1843,13 @@ void findstr_option2(char* command , FILE* fptr , char* filename){
         }
         else{
         printf("Invalid command\n");
-      }
+        }
+
     }
+
     else{
         printf("Invalid command\n");
-      }
+    }
 }
 
 void findstr_option3(char* command , FILE* fptr , char* filename){
@@ -1950,7 +1868,6 @@ void findstr_option3(char* command , FILE* fptr , char* filename){
             if(kh){
                 return;
             }
-            //printf("%s" , data[1]);
             char* fword[10000];
             char* chert = strtok(data[1], " ");
     
@@ -2022,25 +1939,20 @@ void replace(char* command){
 
     space_seperate(&command);
 
-//      printf("%s\n" , path);
-
-    // // char* path = (char*) calloc(200000 , sizeof(char));
-    // // path = word_num[6];
-    // path = word_num[6];
     char* slash_filename = strrchr(word_num[6] , '/');
     char* filename=slash_filename+1;
 
-    char path[1000];
-    strcpy(path , word_num[6]);
+    char* string_to_be_searched = word_num[2];
+    char* string_to_be_replaced = word_num[4];
 
+    char path[10000];
+    strcpy(path , word_num[6]);
     int res=go_to_folder(word_num[6]);
     if(res == -1){
         return;
     }
     backup_hidden(filename , word_num[6]);
 
-    char* string_to_be_searched = word_num[2];
-    char* string_to_be_replace = word_num[4];
 
 
     if(i==7){
@@ -2058,13 +1970,13 @@ void replace(char* command){
             printf("-1\n");
             return;
         }
-        char* cmd2 = (char*) calloc(2000 , sizeof(char));
-        char* cmd3 = (char*) calloc(2000 , sizeof(char));
+        char* cmd2 = (char*) calloc(2000000 , sizeof(char));
+        char* cmd3 = (char*) calloc(2000000 , sizeof(char));
         dont_replace=1;
         int size = strlen(string_to_be_searched);
         sprintf(cmd2 , "removestr --file %s -pos 1:%d -size %d -f" , path , first_pos , size);
         removestr(cmd2);
-        sprintf(cmd3 , "insertstr --file %s --str %s -pos 1:%d" , path , string_to_be_replace , first_pos);
+        sprintf(cmd3 , "insertstr --file %s --str %s -pos 1:%d" , path , string_to_be_replaced , first_pos);
         insertstr(cmd3);
     }
 
@@ -2074,14 +1986,14 @@ void replace(char* command){
         
         int nth = strtol(word_num[8] , &word_num[8] , 10 );
 
-        char str[10000];
+        char* str = (char*) calloc(2000000 , sizeof(char));
         char *pos;
 
         int index, count;
         
         count = 0;
 
-        while ((fgets(str, 10000 , fptr)) != NULL){
+        while ((fgets(str, 1000000 , fptr)) != NULL){
             while ((pos = strstr(str + index, string_to_be_searched)) != NULL){
                 index = (pos - str) + 1;
                 if(index < 0){
@@ -2089,14 +2001,14 @@ void replace(char* command){
                     return;
                 }
                 if(count+1 == nth){
-                    char* cmd2 = (char*) calloc(2000 , sizeof(char));
-                    char* cmd3 = (char*) calloc(2000 , sizeof(char));
+                    char* cmd2 = (char*) calloc(200000 , sizeof(char));
+                    char* cmd3 = (char*) calloc(200000 , sizeof(char));
                     int size = strlen(string_to_be_searched);
                     dont_replace=1;
                     fclose(fptr);
                     sprintf(cmd2 , "removestr --file %s -pos 1:%d -size %d -f" , path , index-1 , size);
                     removestr(cmd2);
-                    sprintf(cmd3 , "insertstr --file %s --str %s -pos 1:%d" , path , string_to_be_replace , index-1);
+                    sprintf(cmd3 , "insertstr --file %s --str %s -pos 1:%d" , path , string_to_be_replaced , index-1);
                     insertstr(cmd3);
                 }
                 count++;
@@ -2115,26 +2027,26 @@ void replace(char* command){
         FILE* fptr;
         fptr = fopen(filename , "r");
 
-        char str[10000];
+        char* str = (char*) calloc(2000000 , sizeof(char));
         char *pos;
 
         int index;
         int p=0,flag=0;
         int difference;
 
-        while ((fgets(str, 10000 , fptr)) != NULL){
+        while ((fgets(str, 1000000 , fptr)) != NULL){
             index = 0;
             while ((pos = strstr(str + index, string_to_be_searched)) != NULL){
                 index = (pos - str) + 1;
                 char* cmd2 = (char*) calloc(2000 , sizeof(char));
                 char* cmd3 = (char*) calloc(2000 , sizeof(char));
                 int size = strlen(string_to_be_searched);
-                difference = (size - strlen(string_to_be_replace))*p;
+                difference = (size - strlen(string_to_be_replaced))*p;
                 fclose(fptr);
                 dont_replace=1;
                 sprintf(cmd2 , "removestr --file %s -pos 1:%d -size %d -f" , path , index-1-difference , size);
                 removestr(cmd2);
-                sprintf(cmd3 , "insertstr --file %s --str %s -pos 1:%d" , path , string_to_be_replace , index-1-difference);
+                sprintf(cmd3 , "insertstr --file %s --str %s -pos 1:%d" , path , string_to_be_replaced , index-1-difference);
                 insertstr(cmd3);
                 p++;
             }
@@ -2153,7 +2065,7 @@ void replace(char* command){
 
 void find_w(char* path , char* filename , char* string_to_be_searched){
 
-    int res=go_to_folder(word_num[4]);
+    int res=go_to_folder(path);
     if(res == -1){
         return;
     }
@@ -2165,12 +2077,12 @@ void find_w(char* path , char* filename , char* string_to_be_searched){
 
         string_to_be_searched=string_to_be_searched+1;
 
-        char str[10000];
+        char* str = (char*) calloc(2000000 , sizeof(char));
         char *pos;
 
         int index , nnn=0;
 
-        while ((fgets(str, 10000 , fptr)) != NULL)
+        while ((fgets(str, 1000000 , fptr)) != NULL)
         {
             index = 0;
 
@@ -2180,6 +2092,11 @@ void find_w(char* path , char* filename , char* string_to_be_searched){
                 index = (pos - str) + 1;
                 if(str[index-2]!=' ' && str[index-2]!='\n' && str[index-2]!='\0' && str[index-2]!=EOF){
                     for(int k=index-2 ; k>=0 ; k--){
+                        if(index-2==1){
+                            printf("%d\n" , k+1);
+                            nnn=1;
+                            break;
+                        }
                         if(str[k]==' ' || str[k]=='\n' || str[k]=='\0'){
                             printf("%d\n" , k+1);
                             nnn=1;
@@ -2199,12 +2116,12 @@ void find_w(char* path , char* filename , char* string_to_be_searched){
 
         string_to_be_searched[strlen(string_to_be_searched)-1] = '\0';
 
-        char str[10000];
+        char* str = (char*) calloc(20000000 , sizeof(char));
         char *pos;
 
         int index , nnn=0;
 
-        while ((fgets(str, 10000 , fptr)) != NULL)
+        while ((fgets(str, 1000000 , fptr)) != NULL)
         {
             index = 0;
 
@@ -2212,10 +2129,15 @@ void find_w(char* path , char* filename , char* string_to_be_searched){
             {
 
                 index = (pos - str) + 1;
+
                 if(str[index]!=' ' && str[index]!='\n' && str[index]!='\0' && str[index]!=EOF){
                    printf("%d\n" , index-1);
+                   nnn=1;
                    break;
                 }
+            }
+            if(nnn==1){
+                 break;
             }
         
         }  
